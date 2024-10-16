@@ -44,15 +44,46 @@ class HandleClass {
             let identifier = field.identifier
             let identifierString = unwrapRawIdentifier(identifier)
             let typeInfo = field.declType
+            let typeInfoString = typeInfo.toTokens().toString()
 
             if (isOptionType(typeInfo)) {
                 let baseType = getOptionBaseType(typeInfo)
                 funcBody.append(quote(
-                    obj.$identifier = Option<$baseType>.deserialize(dms.get($identifierString))
+                    try {
+                        obj.$identifier = Option<$baseType>.deserialize(dms.get($identifierString))
+                    } catch (e: Exception) {
+                        let dm = dms.get($identifierString)
+                        let actualType = match(dm) {
+                            case b: DataModelBool => "Bool"
+                            case f: DataModelFloat => "Float64"
+                            case i: DataModelInt => "Int64"
+                            case n: DataModelNull => "null"
+                            case seq: DataModelSeq => "ArrayList"
+                            case str: DataModelString => "String"
+                            case obj: DataModelStruct => "class"
+                            case _ => "UNKNOWN"
+                        }
+                        throw JsonDecodingException($(this.className.value), $identifierString, $(typeInfoString), actualType)
+                    }
                 ))
             } else {
                 funcBody.append(quote(
-                    obj.$identifier = $typeInfo.deserialize(dms.get($identifierString))
+                    try {
+                        obj.$identifier = $typeInfo.deserialize(dms.get($identifierString))
+                    } catch (e: Exception) {
+                        let dm = dms.get($identifierString)
+                        let actualType = match(dm) {
+                            case b: DataModelBool => "Bool"
+                            case f: DataModelFloat => "Float64"
+                            case i: DataModelInt => "Int64"
+                            case n: DataModelNull => "null"
+                            case seq: DataModelSeq => "ArrayList"
+                            case str: DataModelString => "String"
+                            case obj: DataModelStruct => "class"
+                            case _ => "UNKNOWN"
+                        }
+                        throw JsonDecodingException($(this.className.value), $identifierString, $(typeInfoString), actualType)
+                    }
                 ))
             }
         }

@@ -1,6 +1,6 @@
-# Cangjie json 序列化与反序列化库
+# Cangjie JSON 序列化与反序列化库
 
-提供 @JsonAdapter 宏，用于为 class 自动实现如下 `IJsonAdapter<T>` 接口，使其可以进行 json 序列化和反序列化。
+提供 @JsonAdapter 宏，用于为 class 自动实现 `IJsonAdapter<T>` 接口（见下方源码），使其可以进行 JSON 序列化和反序列化。
 
 ```cangjie
 public interface IJsonAdapter<T> <: Serializable<T> {
@@ -17,9 +17,11 @@ public interface Serializable<T> {
 
 ## 主要特性：
 
-- 支持仓颉全部的基础类型：`Int8/16/32/64`、`UInt8/16/32/64`、`Float16/32/64`、`Bool`、`Rune`、`String`
-- 支持 `Option<T>`
-- 支持 `Array<T>`、`ArrayList<T>`、`HashSet<T>`、`HashMap<K, V>`。
+- 提供 `@JsonAdapter` 用于修饰非泛型的 class 类型，为其自动生成 JSON 序列化及反序列化的接口；
+- 以下类型均已默认实现了 `IJsonAdapter` 接口，可以直接使用：
+    - 全部基础类型：`Int8/16/32/64`、`UInt8/16/32/64`、`Float16/32/64`、`Bool`、`Rune`、`String`
+    - `Option<T>` 
+    - `Array<T>`、`ArrayList<T>`、`HashSet<T>`、`HashMap<K, V>`
 
 ### 使用限制
 
