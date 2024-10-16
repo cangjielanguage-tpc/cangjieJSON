@@ -51,38 +51,38 @@ class HandleClass {
                 funcBody.append(quote(
                     try {
                         obj.$identifier = Option<$baseType>.deserialize(dms.get($identifierString))
-                    } catch (e: Exception) {
+                    } catch (e: DataModelException) {
                         let dm = dms.get($identifierString)
                         let actualType = match(dm) {
                             case b: DataModelBool => "Bool"
                             case f: DataModelFloat => "Float64"
                             case i: DataModelInt => "Int64"
-                            case n: DataModelNull => "null"
                             case seq: DataModelSeq => "ArrayList"
                             case str: DataModelString => "String"
                             case obj: DataModelStruct => "class"
+                            case n: DataModelNull => throw JsonFieldNotExist($(this.className.value), $identifierString)
                             case _ => "UNKNOWN"
                         }
-                        throw JsonDecodingException($(this.className.value), $identifierString, $(typeInfoString), actualType)
+                        throw JsonTypeMismatch($(this.className.value), $identifierString, $(typeInfoString), actualType)
                     }
                 ))
             } else {
                 funcBody.append(quote(
                     try {
                         obj.$identifier = $typeInfo.deserialize(dms.get($identifierString))
-                    } catch (e: Exception) {
+                    } catch (e: DataModelException) {
                         let dm = dms.get($identifierString)
                         let actualType = match(dm) {
                             case b: DataModelBool => "Bool"
                             case f: DataModelFloat => "Float64"
                             case i: DataModelInt => "Int64"
-                            case n: DataModelNull => "null"
                             case seq: DataModelSeq => "ArrayList"
                             case str: DataModelString => "String"
                             case obj: DataModelStruct => "class"
+                            case n: DataModelNull => throw JsonFieldNotExist($(this.className.value), $identifierString)
                             case _ => "UNKNOWN"
                         }
-                        throw JsonDecodingException($(this.className.value), $identifierString, $(typeInfoString), actualType)
+                        throw JsonTypeMismatch($(this.className.value), $identifierString, $(typeInfoString), actualType)
                     }
                 ))
             }
