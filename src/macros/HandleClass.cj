@@ -9,7 +9,7 @@ class HandleClass {
     private var className: Token
     private var superTypes: Tokens
     private var body: Tokens
-    private let allFields: ArrayList<VarDecl>
+    private let allFields = ArrayList<FieldInfo>()
     
     public init(cd: ClassDecl) {
         this.cd = cd
@@ -17,7 +17,6 @@ class HandleClass {
         this.className = cd.identifier
         this.superTypes = cd.superTypes.toTokens()
         this.body = cd.body.decls.toTokens()
-        this.allFields = ArrayList<VarDecl>()
     }
 
     private func addSuperTypes() {
@@ -28,61 +27,43 @@ class HandleClass {
         }
     }
 
-    private func isPrivateVarDecl(vd: VarDecl): Bool {
-        for(mod in vd.modifiers) {
-            if (mod.toTokens().toString() == "private") {
-                return true
-            }
-        }
-        return false
-    }
-
     private func createDeserializeFunc(): Tokens {
         var funcBody = Tokens()
 
         for (field in allFields) {
-            let identifier = field.identifier
-            let identifierString = unwrapRawIdentifier(identifier)
-            let typeInfo = field.declType
+            if (field.isIgnore) {
+                continue
+            }
+            let identifier = field.vd.identifier
+            let jsonName = field.getJsonName()
+            let typeInfo = field.vd.declType
             let typeInfoString = typeInfo.toTokens().toString()
 
             if (isOptionType(typeInfo)) {
                 let baseType = getOptionBaseType(typeInfo)
                 funcBody.append(quote(
                     try {
-                        obj.$identifier = Option<$baseType>.deserialize(dms.get($identifierString))
+                        obj.$identifier = Option<$baseType>.deserialize(dms.get($jsonName))
                     } catch (e: DataModelException) {
-                        let dm = dms.get($identifierString)
-                        let actualType = match(dm) {
-                            case b: DataModelBool => "Bool"
-                            case f: DataModelFloat => "Float64"
-                            case i: DataModelInt => "Int64"
-                            case seq: DataModelSeq => "ArrayList"
-                            case str: DataModelString => "String"
-                            case obj: DataModelStruct => "class"
-                            case n: DataModelNull => throw JsonFieldNotExist($(this.className.value), $identifierString)
-                            case _ => "UNKNOWN"
+                        let dm = dms.get($jsonName)
+                        if (dm.isNull()) {
+                            throw JsonFieldNotExist($(this.className.value), $jsonName)
+                        } else {
+                            throw JsonTypeMismatch($(this.className.value), $jsonName, $(typeInfoString), dm.toJsonType())
                         }
-                        throw JsonTypeMismatch($(this.className.value), $identifierString, $(typeInfoString), actualType)
                     }
                 ))
             } else {
                 funcBody.append(quote(
                     try {
-                        obj.$identifier = $typeInfo.deserialize(dms.get($identifierString))
+                        obj.$identifier = $typeInfo.deserialize(dms.get($jsonName))
                     } catch (e: DataModelException) {
-                        let dm = dms.get($identifierString)
-                        let actualType = match(dm) {
-                            case b: DataModelBool => "Bool"
-                            case f: DataModelFloat => "Float64"
-                            case i: DataModelInt => "Int64"
-                            case seq: DataModelSeq => "ArrayList"
-                            case str: DataModelString => "String"
-                            case obj: DataModelStruct => "class"
-                            case n: DataModelNull => throw JsonFieldNotExist($(this.className.value), $identifierString)
-                            case _ => "UNKNOWN"
+                        let dm = dms.get($jsonName)
+                        if (dm.isNull()) {
+                            throw JsonFieldNotExist($(this.className.value), $jsonName)
+                        } else {
+                            throw JsonTypeMismatch($(this.className.value), $jsonName, $(typeInfoString), dm.toJsonType())
                         }
-                        throw JsonTypeMismatch($(this.className.value), $identifierString, $(typeInfoString), actualType)
                     }
                 ))
             }
@@ -108,10 +89,21 @@ class HandleClass {
         var funcBody = Tokens()
 
         for (field in allFields) {
-            let identifierString = unwrapRawIdentifier(field.identifier)
-            funcBody.append(quote(
-                dms.add(field($(identifierString), $(field.identifier)))
-            ))
+            if (field.isIgnore) {
+                continue
+            }
+            let jsonName = field.getJsonName()
+            if (field.isIgnoreNull && isOptionType(field.vd.declType)) {
+                funcBody.append(quote(
+                    if (let Some(v) <- $(field.vd.identifier)) {
+                        dms.add(field($(jsonName), $(field.vd.identifier)))
+                    }
+                ))
+            } else {
+                funcBody.append(quote(
+                    dms.add(field($(jsonName), $(field.vd.identifier)))
+                ))
+            }
         }
 
         return quote(
@@ -147,13 +139,13 @@ class HandleClass {
         for (decl in cd.body.decls) {
             match (decl) {
                 case vd: VarDecl =>
-                    if (isPrivateVarDecl(vd)) {
-                        diagReport(DiagReportLevel.WARNING, vd.toTokens(), 
-                            "`private` members will be ignored when serializing or deserializing",
-                            "`private` members will be ignored when serializing or deserializing")
-                    } else {
-                        this.allFields.append(vd)
+                    let field = FieldInfo(vd)
+                    if ((field.isPrivate || field.isStatic) && !field.isIgnore) {
+                        diagReport(DiagReportLevel.ERROR, vd.toTokens(),
+                            "`private` or `static` member variable must use @JsonIgnore",
+                            "must use @JsonIgnore")
                     }
+                     this.allFields.append(field)
                 case _ => ()
             }
         }
@@ -168,5 +160,52 @@ class HandleClass {
                 $body
             }
         )
+    }
+}
+
+class FieldInfo {
+    public var isIgnore: Bool
+    public var isIgnoreNull: Bool
+    public var jsonName: ?String
+    public var typeNode: ?TypeNode = None
+
+    public var isPrivate: Bool = false
+    public var isStatic: Bool = false
+
+    public FieldInfo(
+        public let vd: VarDecl
+    ) {
+        let identifierString = vd.identifier.value
+        isIgnore = GlobalInfo.current().isJsonIgnore(identifierString)
+        isIgnoreNull = GlobalInfo.current().isJsonIgnoreNull(identifierString)
+        jsonName = GlobalInfo.current().getJsonName(identifierString)
+        // println("FieldInfo: get '${identifierString}' with '${jsonName}'")
+
+        // 没有用 @JsonIgnore 标记的成员，检查是否显式的声明了其类型
+        if (!isIgnore) {
+            try {
+                typeNode = vd.declType
+            } catch (e: ASTException) {
+                diagReport(DiagReportLevel.ERROR, vd.identifier.toTokens(),
+                    "filed without @JsonIgnore must explicitly declare its type",
+                    "must explicitly declare its type")
+            }
+        }
+
+        for(mod in vd.modifiers) {
+            match (mod.toTokens().toString()) {
+                case "private" => isPrivate = true
+                case "static" => isStatic = true
+                case _ => ()
+            }
+        }
+    }
+
+    public func getJsonName(): String {
+        if (let Some(v) <- jsonName) {
+            return v
+        } else {
+            unwrapRawIdentifier(vd.identifier)
+        }
     }
 }
