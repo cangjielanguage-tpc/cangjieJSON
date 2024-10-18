@@ -7,17 +7,19 @@
 - 提供 `@JsonIgnore` 宏用于修饰 class 里的成员，使其不参与序列化和反序列化；
 - 提供 `@JsonIgnoreNull` 宏用于修饰 class 里的成员，如果该成员值为 None，则不进行序列化；反序列化仍然正常执行。
 
+
 同时对外暴露了如下接口：
 - `IJsonAdapter<T>` 接口：序列化和反序列化的接口，使用 `@JsonAdapter` 修饰的 class 默认都实现了该接口；
 - `JsonTypeMismatch` 异常类：在反序列化时，如果JSON的数据类型与 class 成员的类型不一致，会抛出该异常；
 - `JsonFieldNotExist` 异常类：在反序列化时，如果 class 的成员变量名字，在 JSON 字符串中找不到对应的 key，会抛出该异常。
 - `DataModelExtend` 接口：获取 `DataModel` 的类型，仅用于宏展开的代码调用，开发者无需关注。
 
-更多示例代码请查阅 `examples` 目录。
 
-# 接口介绍：
+**完整示例请查阅 `examples` 目录。**
 
-## `@JsonAdapter` 宏
+# 1. 接口详细介绍：
+
+## 1.1 `@JsonAdapter` 宏
 
 用于修饰非泛型的 class 类型，使其实现 `IJsonAdapter<T>` 接口，该接口定义如下：
 
@@ -96,7 +98,7 @@ println(b.toJson())
 >   - `Option<T>`
 >   - `Array<T>`、`ArrayList<T>`、`HashSet<T>`、`HashMap<K, V>`
 
-## `@JsonName` 宏
+## 1.2 `@JsonName` 宏
 
 用于修饰 class 里的成员，使其在序列化和反序列化过程中使用新的名字。例如：
 
@@ -117,7 +119,7 @@ main() {
 }
 ```
 
-## `@JsonIgnore` 宏
+## 1.3 `@JsonIgnore` 宏
 
 用于修饰 class 里的成员，使其不参与序列化和反序列化。例如：
 
@@ -142,7 +144,7 @@ public class JsonIgnoreExample {
     @JsonIgnore
     private var pa: Int64 = 0
 
-    // 使用 @JsonIgnore 修饰成员，其类型无需满足 IJsonAdapter 接口约束
+    // 使用 @JsonIgnore 修饰的成员，其类型无需满足 IJsonAdapter 接口约束
     @JsonIgnore
     public var b: IgnoreClass = IgnoreClass()  
 
@@ -165,7 +167,7 @@ main() {
 }
 ```
 
-## `@JsonIgnoreNull` 宏
+## 1.4 `@JsonIgnoreNull` 宏
 
 用于修饰 class 里的成员，如果该成员值为 None，则不进行序列化；反序列化仍然正常执行。例如：
 
@@ -206,14 +208,14 @@ main() {
 }
 ```
 
-## 使用限制
+# 2. 使用限制
 
 1. 目前仅支持修饰 class 类型，后续会支持 enum 类型
 2. `@JsonAdapter` 暂不支持修饰泛型类型
 3. `@JsonAdapter`暂不支持修饰通过主构造函数声明成员变量的 class 类型
 
 
-# 如何集成使用
+# 3. 如何集成使用
 
 ## Step1：配置并更新依赖
 
