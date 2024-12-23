@@ -84,7 +84,7 @@ public class Basic <: IJsonAdapter <Basic> {
 因此开发者可以通过调用以上方法来进行 JSON 的序列化和反序列化：
 
 ```cangjie
-let input: String = "{"a\":123,\"b\":\"bbbbb\",\"c\":null,\"d\":[1,2,3],\"e\":[\"s1\",\"s2\",\"s3\"],\"f\":{\"f1\":123,\"f2\":456}}"
+let input: String = #"{"a":123,"b":"bbbbb","c":null,"d":[1,2,3],"e":["s1","s2","s3"],"f":{"f1":123,"f2":456}}"#
 
 // 反序列化为仓颉对象
 let b = Basic.fromJson(input)
