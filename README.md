@@ -15,13 +15,13 @@
 - `DataModelExtend` 接口：获取 `DataModel` 的类型，仅用于宏展开的代码调用，开发者无需关注。
 
 
-**完整示例请查阅 `examples` 目录。**
+**详细示例请查阅 `examples` 目录或 `src/test` 目录。**
 
 # 1. 接口详细介绍：
 
 ## 1.1 `@JsonAdapter` 宏
 
-用于修饰非泛型的 class 类型，使其实现 `IJsonAdapter<T>` 接口，该接口定义如下：
+用于修饰 class 类型（支持泛型），使其实现 `IJsonAdapter<T>` 接口，`IJsonAdapter<T>`的接口定义如下：
 
 ```cangjie
 public interface IJsonAdapter<T> <: Serializable<T> {
@@ -63,6 +63,8 @@ public class Basic <: IJsonAdapter <Basic> {
     public var e: ArrayList<String> = ArrayList<String>()
     public var f: HashMap<String, Int64> = HashMap<String, Int64>()
 
+    // other member functions
+
     public static func deserialize(dataModel: DataModel): Basic {
         ...
     }
@@ -89,14 +91,82 @@ let input: String = #"{"a":123,"b":"bbbbb","c":null,"d":[1,2,3],"e":["s1","s2","
 // 反序列化为仓颉对象
 let b = Basic.fromJson(input)
 
-// 序列化为 String
+// 序列化为 JSON 字符串
 println(b.toJson())
 ```
 
-> 【注意】以下类型均已默认实现了 `IJsonAdapter` 接口，可以直接使用：
+> **注意**
+>
+> 以下类型均已默认实现了 `IJsonAdapter` 接口，可以直接使用：
+>
 >   - 全部基础类型：`Int8/16/32/64`、`UInt8/16/32/64`、`Float16/32/64`、`Bool`、`Rune`、`String`
 >   - `Option<T>`
 >   - `Array<T>`、`ArrayList<T>`、`HashSet<T>`、`HashMap<K, V>`
+
+### 1.1.1 `withSuperClass` 属性
+
+默认情况下，`@JsonAdapter` 修饰的 class 只能针对自身的成员变量进行序列化和反序列化，并不包含其父类里的成员变量。
+
+在子类的序列化和反序列化的过程中，为了使其包含父类的成员变量，`@JsonAdapter` 支持一个可选的 `withSuperClass` 属性，用于指定父类类型。
+
+> 注意：在这种情况下，父类也必须使用 `@JsonAdapter` 修饰。
+
+示例如下：
+
+```cangjie
+// 如果需要被继承，需要添加 open 访问修饰符。
+@JsonAdapter
+public open class Parent {
+    public var a: Int64 = 0
+}
+
+// 指定父类类型为 Parent，表明父类的成员也将被序列化和反序列化。
+@JsonAdapter[withSuperClass = Parent]
+public class Child <: Parent {
+    public var b: String = ""
+}
+
+main() {
+    let input = #"{"a":123,"b":"hello"}"#
+
+    let c: Child = Child.fromJson(input)
+    println(c.a) // 输出 123
+    println(c.b) // 输出 hello
+}
+```
+
+### 1.1.2 `withGenericType` 属性
+
+实际上，`@JsonAdapter` 可以用于修饰一个泛型类，但是**该泛型类型不能参与序列化和反序列化的过程**（比如，@JsonIgnore 修饰的成员变量的类型可以使用该泛型类型）。
+
+如果泛型类型需要参与序列化和反序列化的过程，`@JsonAdapter` 提供了一个可选的 `withGenericType` 属性用于指定其泛型变元。
+
+> 注意：
+>
+> 1. `withGenericType` 目前最多支持 1 个泛型变元。
+> 2. `withGenericType` 指定的泛型变元，会自动添加 `where T <: IJsonAdapter<T>` 的泛型约束。
+
+示例如下：
+
+```cangjie
+@JsonAdapter
+public class MyData {
+    public var a: Int64 = 0
+    public var b: String = ""
+}
+
+// 指定泛型变元 T，支持类型为 T 的成员参与序列化和反序列化，并自动为其添加 IJsonAdapter<T> 泛型约束。
+@JsonAdapter[withGenericType = T]
+public class Result<T> {
+    public var data: ?T = None
+}
+
+main() {
+    let input = #"{"data":{"a":123,"b":"hello"}}"#
+    let res = Result<MyData>.fromJson(input)
+    println(res.toJson()) // 输出：{"data":{"a":123,"b":"hello"}}
+}
+```
 
 ## 1.2 `@JsonName` 宏
 
@@ -210,9 +280,8 @@ main() {
 
 # 2. 使用限制
 
-1. 目前仅支持修饰 class 类型，后续会支持 enum 类型
-2. `@JsonAdapter` 暂不支持修饰泛型类型
-3. `@JsonAdapter`暂不支持修饰通过主构造函数声明成员变量的 class 类型
+1. 目前仅支持修饰 class 类型，暂不支持 enum 类型
+2. `@JsonAdapter`修饰的class，必须要有一个无参的构造函数。
 
 
 # 3. 如何集成使用
@@ -226,7 +295,14 @@ main() {
   cjjson = {git = "https://gitcode.com/Cangjie-TPC/cangjieJSON.git", branch = "dev"}
 ```
 
-在 `cjpm.toml` 所在目录，执行 `cjpm update` 命令下载对应的代码仓，
+或者使用特定的 tag 版本：
+
+```toml
+[dependencies]
+  cjjson = {git = "https://gitcode.com/Cangjie-TPC/cangjieJSON.git", tag = "tag_v0.0.2"}
+```
+
+在 `cjpm.toml` 所在目录，执行 `cjpm update` 命令下载对应的代码仓。
 
 
 ## Step2：导入依赖包

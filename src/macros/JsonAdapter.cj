@@ -2,20 +2,39 @@ macro package cjjson.macros
 
 import std.ast.*
 
-public macro JsonAdapter(input: Tokens): Tokens {
-    var ret = input
+// @JsonAdapter 修饰 class 时允许使用的属性
+class JsonAdapterClassAttr {
+    public static const WITH_SUPER_CLASS = "withSuperClass"
+    public static const WITH_GENERIC_TYPE = "withGenericType"
 
+    public static func availableAttrs(): String {
+        return "[${WITH_SUPER_CLASS}, ${WITH_GENERIC_TYPE}]"
+    }
+}
+
+// 带属性的宏定义
+public macro JsonAdapter(attr: Tokens, input: Tokens): Tokens {
+    return jsonAdapterImpl(attr, input)
+}
+
+// 不带属性的宏定义
+public macro JsonAdapter(input: Tokens): Tokens {
+    return jsonAdapterImpl(Tokens(), input)
+}
+
+func jsonAdapterImpl(attr: Tokens, input: Tokens): Tokens {
+    var ret = input
     let decl = parseDecl(input)
     match (decl) {
         case cd: ClassDecl =>
-            ret = HandleClass(cd).toTokens()
+            ret = HandleClass(cd).doExpend(attr)
         case ed: EnumDecl =>
-            ret = HandleEnum(ed).toTokens()
+            ret = HandleEnum(ed).doExpend(attr)
         case _ =>
             diagReport(DiagReportLevel.ERROR, input, "Can only be used on ClassDecl or EnumDecl", "Expected ClassDecl or EnumDecl")
     }
 
-    // 展开完一个class之后，需要重置全局信息，以便下一个展开下一个class 时全局数据保证是空的
+    // 展开完一个class之后，需要重置全局信息，以便展开下一个class 时全局数据保证是空的
     GlobalInfo.current().reset()
 
     return ret

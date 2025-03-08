@@ -7,7 +7,11 @@ class HandleEnum {
         let ed: EnumDecl
     ) {}
 
-    public func toTokens(): Tokens {
+    public func doExpend(attr: Tokens): Tokens {
+        if (attr.size > 0) {
+            diagReport(DiagReportLevel.ERROR, attr, "@JsonAdapter does NOT support attributes for EnumDecl", "attributes not supported for Enum")
+        }
+
         return Tokens()
     }
 }
