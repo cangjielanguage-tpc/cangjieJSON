@@ -11,3 +11,9 @@ public class JsonFieldNotExist <: Exception {
         super("'${className}.${fieldName}' not exist")
     }
 }
+
+public class JsonGetValueException <: Exception {
+    public init(message: String) {
+        super(message)
+    }
+}

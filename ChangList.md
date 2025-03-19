@@ -1,3 +1,8 @@
+# tag_v0.0.3 (2025-03-19)
+
+- 【新增】新增一个 `class AnyType` 类型（实现了 `IJsonAdapter` 接口），用于支持任意 JSON 类型（bool、int、float、string、array、object、null），并提供 `getValue<T>()` 泛型方法便于转换为具体类型的值。
+- 【新增】新增一个 `JsonGetValueException` 异常类，在调用 `AnyType` 对象的 `getValue<T>()` 方法时，如果类型不匹配，会抛出该异常。
+
 # tag_v0.0.2（2025-03-09）
 
 【新增】为 `@JsonAdapter` 宏新增2个属性：
