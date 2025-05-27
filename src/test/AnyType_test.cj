@@ -16,7 +16,7 @@ public class AnyTypeExample {
 public class MyObject {
     public var a: Int64 = 0
     public var b: String = ""
-    public var c: AnyType = AnyType()
+    public var c: ?AnyType = None
 }
 
 @Test
@@ -71,9 +71,10 @@ func AnyType_BasicTest() {
     let object = object_value.getValue<MyObject>()
     @Assert(object.a, 456)
     @Assert(object.b, "level-1")
-    @Assert(object.c.isObject())
-    let object_c = object.c.getValue<MyObject>()
+    @Assert(object.c.isSome())
+    @Assert(object.c.getOrThrow().isObject())
+    let object_c = object.c.getOrThrow().getValue<MyObject>()
     @Assert(object_c.a, 789)
     @Assert(object_c.b, "level-2")
-    @Assert(object_c.c.isNull())
+    @Assert(object_c.c.isNone())
 }

@@ -17,7 +17,7 @@
 
 [package]
   cjc-version = "0.53.12"
-  compile-option = "--debug-macro --diagnostic-format=noColor"
+  compile-option = ""
   description = "nothing here"
   link-option = ""
   name = "cjjson"

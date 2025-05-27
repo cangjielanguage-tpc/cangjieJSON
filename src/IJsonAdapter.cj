@@ -1,9 +1,17 @@
 package cjjson
 
 public import encoding.json.*
-public import serialization.serialization.*
 
-public interface IJsonAdapter<T> <: Serializable<T> {
-    static func fromJson(str: String): T
-    func toJson(): String
+public interface IJsonAdapter<T> {
+    static func fromJson(str: String): T {
+        fromJsonValue(JsonValue.fromStr(str))
+    }
+
+    static func fromJsonValue(jsonValue: JsonValue): T
+
+    func toJson(): String {
+        toJsonValue().toString()
+    }
+
+    func toJsonValue(): JsonValue
 }

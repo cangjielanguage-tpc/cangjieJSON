@@ -15,12 +15,12 @@
 - `JsonGetValueException` 异常类，调用 `AnyType` 的 `getValue<T>()` 方法时，如果类型不匹配，会抛出该异常。
 - ~~`DataModelExtend` 接口：获取 `DataModel` 的类型，仅用于宏展开的代码调用，开发者无需关注。~~
 
-> 备注：ChangeNote 请点击[此处](./ChangList.md)查看。
+> 备注：版本变更请点击[此处](./CHANGELOG.md)查看。
 
 ## 1. 使用限制
 
-- 目前仅支持修饰 class 类型，暂不支持 enum 类型
-- `@JsonAdapter`修饰的class，必须要有一个无参的构造函数。
+- 目前仅支持修饰 `class` 类型，暂不支持 `enum` 类型、`struct` 类型。
+- `@JsonAdapter`修饰的类，必须要有一个**无参的构造函数**。
 
 ## 2. 如何集成使用
 
@@ -37,13 +37,13 @@
     branch = "dev"
 ```
 
-或者使用特定的 tag 版本：
+或者使用特定的 tag 版本（以 tag_v0.1.0 为例）：
 
 ```toml
 [dependencies]
   [dependencies.cjjson]
     git = "https://gitcode.com/Cangjie-TPC/cangjieJSON.git"
-    tag = "tag_v0.0.3"
+    tag = "tag_v0.1.0"
 ```
 
 在您工程的 cjpm.toml 文件所在目录，执行 `cjpm update` 命令即可同步更新本仓源码。
@@ -109,7 +109,7 @@ let obj = Basic.fromJson(input)  // JSON 字符串反序列化为 Basic 对象
 let jsonString: String = obj.toJson() // Basic 对象序列化为 JSON 字符串
 ```
 
-> 更多详细示例请查阅 `examples` 目录或 `src/test` 目录。
+> 更多详细示例请查阅 `src/test` 目录。
 
 ## 3. 接口详细介绍：
 
@@ -118,15 +118,18 @@ let jsonString: String = obj.toJson() // Basic 对象序列化为 JSON 字符串
 用于修饰 class 类型（支持泛型），使其实现 `IJsonAdapter<T>` 接口，`IJsonAdapter<T>`的接口定义如下：
 
 ```cangjie
-public interface IJsonAdapter<T> <: Serializable<T> {
-    static func fromJson(str: String): T
-    func toJson(): String
-}
+public interface IJsonAdapter<T> {
+    static func fromJson(str: String): T {
+        fromJsonValue(JsonValue.fromStr(str))
+    }
 
-// 其中 Serializable<T> 接口定义在仓颉标准库 serialization.serialization 包中，其声明如下：
-public interface Serializable<T> {
-    func serialize(): DataModel
-    static func deserialize(dm: DataModel): T
+    static func fromJsonValue(jsonValue: JsonValue): T
+
+    func toJson(): String {
+        toJsonValue().toString()
+    }
+
+    func toJsonValue(): JsonValue
 }
 ```
 
@@ -159,11 +162,11 @@ public class Basic <: IJsonAdapter <Basic> {
 
     // other member functions
 
-    public static func deserialize(dataModel: DataModel): Basic {
+    public static func fromJsonValue(jsonValue: JsonValue): Basic {
         ...
     }
 
-    public func serialize(): DataModel {
+    public func toJsonValue(): JsonValue {
         ...
     }
 
@@ -193,15 +196,18 @@ println(b.toJson())
 >
 > 以下类型均已默认实现了 `IJsonAdapter` 接口，可以直接使用：
 >
->   - 全部基础类型：`Int8/16/32/64`、`UInt8/16/32/64`、`Float16/32/64`、`Bool`、`Rune`、`String`
->   - `Option<T>`
->   - `Array<T>`、`ArrayList<T>`、`HashSet<T>`、`HashMap<K, V>`
+>   - 基础类型：`Int8/16/32/64`、`UInt8/16/32/64`、`Float16/32/64`、`Bool`、`String`
+>   - 可空类型：`Option<T>`
+>   - 集合类型：`Array<T>`、`ArrayList<T>`、`HashSet<T>`、`HashMap<String, V>`
+>
+> 以上泛型参数需要满足 `IJsonAdapter` 接口约束。
+
 
 #### 3.1.1 `withSuperClass` 属性
 
-默认情况下，`@JsonAdapter` 修饰的 class **只能针对自身的成员变量进行序列化和反序列化，并不包含其父类里的成员变量**。
+`@JsonAdapter` 修饰的 class 在默认情况下，**只能针对自身的成员变量进行序列化和反序列化，并不包含其父类里的成员变量**。
 
-在子类的序列化和反序列化的过程中，为了使其包含父类的成员变量，`@JsonAdapter` 支持一个可选的 `withSuperClass` 属性，用于指定父类类型。
+在子类的序列化和反序列化的过程中，为了使其包含父类的成员变量，`@JsonAdapter` 支持一个可选的 `withSuperClass` 属性，用于指定其父类类型。
 
 > 注意：在这种情况下，父类也必须使用 `@JsonAdapter` 修饰。
 
@@ -379,7 +385,10 @@ main() {
 ```cangjie
 public class AnyType <: IJsonAdapter<AnyType> {
     // 原始的 JsonValue 值。
-    public var jsonValue: JsonValue = JsonNull()
+    public var jsonValue: JsonValue
+
+    public init()
+    public init(value: JsonValue)
 
     // 判断 AnyType 的类型
     public func isArray(): Bool
@@ -393,12 +402,47 @@ public class AnyType <: IJsonAdapter<AnyType> {
     // 转换为对应的 T 类型，如果类型不匹配，会抛出异常。
     public func getValue<T>(): T where T <: IJsonAdapter<T>
 
-    // 实现 IJsonAdapter 接口的 4 个方法
-    public static func deserialize(dataModel: DataModel): AnyType
-    public func serialize(): DataModel
-    public static func fromJson(str: String): AnyType
-    public func toJson(): String
+    // 实现 IJsonAdapter 接口
+    public static func fromJsonValue(value: JsonValue): AnyType
+    public func toJsonValue(): JsonValue
 }
 ```
 
 具体使用示例可参考[单元测试用例源码](./src/test/AnyType_test.cj)
+
+### 3.6 JsonValue 扩展
+
+为了更加方便的使用 JsonValue 类型，为其扩展了如下接口：
+
+```cangjie
+// 扩展JsonValue
+public interface IJsonValueExtend {
+    // 判断JsonValue的类型
+    func isBool(): Bool
+    func isInt(): Bool
+    func isFloat(): Bool
+    func isString(): Bool
+    func isObject(): Bool
+    func isArray(): Bool
+    func isNull(): Bool
+
+    // 为JSON Object类型提供一系列简易的set方法，如果当前不是JSON Object类型，则写入失败，返回false。
+    func setBoolValue(key: String, value: Bool): Bool
+    func setIntValue(key: String, value: Int64): Bool
+    func setFloatValue(key: String, value: Float64): Bool
+    func setStringValue(key: String, value: String): Bool
+    func setObjectValue(key: String, value: JsonObject): Bool
+    func setArrayValue(key: String, value: Array<JsonValue>): Bool
+    func setNullValue(key: String): Bool
+    func setJsonValue(key: String, value: JsonValue): Bool
+
+    // 为JSON Object类型提供一系列简易的get方法，如果当前不是JSON Object类型，返回default默认值。
+    func getBoolValue(key: String, default!: Bool, onException!: (Exception) -> Unit): Bool
+    func getIntValue(key: String, default!: Int64, onException!: (Exception) -> Unit): Int64
+    func getFloatValue(key: String, default!: Float64, onException!: (Exception) -> Unit): Float64
+    func getStringValue(key: String, default!: String, onException!: (Exception) -> Unit): String
+    func getArrayValue(key: String, default!: Array<JsonValue>, onException!: (Exception) -> Unit): Array<JsonValue>
+    func getJsonObject(key: String, default!: JsonObject, onException!: (Exception) -> Unit): JsonObject
+    func getJsonValue(key: String, default!: JsonValue, onException!: (Exception) -> Unit): JsonValue
+}
+```

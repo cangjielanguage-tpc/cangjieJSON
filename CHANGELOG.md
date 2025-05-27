@@ -1,3 +1,19 @@
+# tag_v0.1.0 (2025-05-27)
+
+> 注意：为了提升序列化与反序列化性能，移除对 seiralization 模块的依赖，本版本存在接口变更。
+
+- 【修改】`IJsonAdapter` 不再继承 `Serializable<T>` 接口，因此，
+    - 删除了 `func serialize(): DataModel` 和 `static func deserialize(dm: DataModel): T` 两个接口；
+    - 新增了 `func toJsonValue(): JsonValue` 和 ` static func fromJsonValue(jsonValue: JsonValue): T` 两个接口；
+    - 原有的 `func toJson(): String` 和 `static func fromJson(str: String): T` 两个接口保持不变。
+- 【修改】`Int64`/`Int32`/...、`UInt64`/...、`Array`/`ArrayList`/`HashSet`/`HashMap`、`AnyType` 等基本类型均重新实现 `IJsonAdapter` 接口。
+- 【修改】修改了 `JsonTypeMismatch` 异常类的构造函数
+- 【修改】现在 private 成员变量也可以参与序列化和反序列化，不用强制加 `@JsonIgnore` 宏。
+- 【删除】不再支持 `Rune` 类型
+- 【新增】扩展 `JsonKind` 类型，新增 `toString`、`==`、`!=` 三个方法。
+- 【新增】扩展 `JsonValue` 类型，提供常用的类型判断、读写JSON对象的功能。
+- 【修复】修复社区反馈的 String 类型序列化再反序列化失败的问题。
+
 # tag_v0.0.3 (2025-03-19)
 
 - 【新增】新增一个 `class AnyType` 类型（实现了 `IJsonAdapter` 接口），用于支持任意 JSON 类型（bool、int、float、string、array、object、null），并提供 `getValue<T>()` 泛型方法便于转换为具体类型的值。

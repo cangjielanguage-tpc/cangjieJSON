@@ -23,7 +23,6 @@ public macro JsonName(attr: Tokens, input: Tokens): Tokens {
     let decl = parseDecl(input)
     match (decl) {
         case vd: VarDecl =>
-            // println("@JsonName: set '${vd.identifier.value}' with newname: '${jsonName}'")
             GlobalInfo.current().setJsonName(vd.identifier.value, jsonName)
         case _ =>
             diagReport(DiagReportLevel.ERROR, input, "Can only be used on VarDecl", "Expected VarDecl")

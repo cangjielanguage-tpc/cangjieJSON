@@ -26,15 +26,42 @@ public class IgnoreNullClass {
 }
 
 @Test
-func JsonIgnoreNull_UseNullValue() {
-    let input = #"{"a":1,"b":null,"c":"ccc","d":[4,5,6],"e":null}"#
-    let expectOutput = #"{"a":1,"c":"ccc","d":[4,5,6]}"#
-    @Assert(IgnoreNullClass.fromJson(input).toJson(), expectOutput)
-}
+class JsonIgnoreNullTest {
+    @TestCase
+    func useNullValue() {
+        let input = #"{"a":1,"b":null,"c":"ccc","d":[4,5,6],"e":null}"#
+        let inc = IgnoreNullClass.fromJson(input)
+        @Assert(inc.a, 1)
+        @Assert(inc.b.isNone())
+        @Assert(inc.c.getOrThrow(), "ccc")
+        @Assert(inc.d.isSome())
+        let arr = inc.d.getOrThrow()
+        @Assert(arr[0], 4)
+        @Assert(arr[1], 5)
+        @Assert(arr[2], 6)
+        @Assert(inc.e.isNone())
+    }
 
-@Test
-func JsonIgnoreNull_MissValue() {
-    let input = #"{"a":1}"#
-    let expectOutput = #"{"a":1}"#
-    @Assert(IgnoreNullClass.fromJson(input).toJson(), expectOutput)
+    @TestCase
+    func missValue() {
+        let input = #"{"a":1}"#
+        let inc = IgnoreNullClass.fromJson(input)
+        @Assert(inc.a, 1)
+        @Assert(inc.b.isNone())
+        @Assert(inc.c.isNone())
+        @Assert(inc.d.isNone())
+        @Assert(inc.e.isNone())
+    }
+
+    @TestCase
+    func toJson() {
+        let inc = IgnoreNullClass()
+        inc.a = 123
+        inc.b = None
+        inc.c = "hello"
+        inc.d = None
+        inc.e = ArrayList(["cangjie", "world"])
+        let expectJson = #"{"a":123,"c":"hello","e":["cangjie","world"]}"#
+        @Assert(inc.toJson(), expectJson)
+    }
 }

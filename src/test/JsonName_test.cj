@@ -14,13 +14,17 @@ public class NewNameClass {
 }
 
 @Test
-func JsonName_UseOldName() {
-    let input = #"{"name":"123"}"#
-    @ExpectThrows[JsonFieldNotExist](NewNameClass.fromJson(input))
-}
+class JsonNameTest {
+    @TestCase
+    func useOldName() {
+        let input = #"{"name":"123"}"#
+        @ExpectThrows[JsonFieldNotExist](NewNameClass.fromJson(input))
+    }
 
-@Test
-func JsonName_UseNewName() {
-    let input = #"{"newName":"123"}"#
-    @Assert(NewNameClass.fromJson(input).toJson(), input)
+    @TestCase
+    func useNewName() {
+        let input = #"{"newName":"123"}"#
+        let obj = NewNameClass.fromJson(input)
+        @Assert(obj.name, "123")
+    }
 }

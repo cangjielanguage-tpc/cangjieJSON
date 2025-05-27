@@ -1,17 +1,24 @@
 package cjjson
 
+// 类型不匹配的异常
 public class JsonTypeMismatch <: Exception {
-    public init(className: String, fieldName: String, expectedType: String, actualType: String) {
-        super("'${className}.${fieldName}' mismatch type, expect '${expectedType}', actually got '${actualType}'")
+    public init(expectType: String, actualType: String) {
+        super("type mismatch: expect '${expectType}', found '${actualType}'")
+
+    }
+    public init(className: String, fieldName: String, message: String) {
+        super("'${className}.${fieldName}' ${message}")
     }
 }
 
+// 对应的字段不存在的异常
 public class JsonFieldNotExist <: Exception {
     public init(className: String, fieldName: String) {
         super("'${className}.${fieldName}' not exist")
     }
 }
 
+// 获取 Value 失败的异常。
 public class JsonGetValueException <: Exception {
     public init(message: String) {
         super(message)
