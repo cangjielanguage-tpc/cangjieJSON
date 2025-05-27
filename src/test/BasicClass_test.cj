@@ -8,7 +8,7 @@ import std.collection.*
 
 // 支持多种类型
 @JsonAdapter
-public class Basic {
+public class BasicClass {
     // 支持所有整数类型
     public var i8: Int8 = 0
     public var i16: Int16 = 0
@@ -46,10 +46,8 @@ public class Basic {
     public var any: AnyType = AnyType()
 }
 
-
-
 @Test
-class BasicTest {
+class BasicClassTest {
     @TestCase
     func fromJson() {
         let input = #"
@@ -100,7 +98,7 @@ class BasicTest {
                 }
             }
             "#
-        let b = Basic.fromJson(input)
+        let b = BasicClass.fromJson(input)
         @Assert(b.i8, 127)
         @Assert(b.i16, -32768)
         @Assert(b.i32, 2147483647)
@@ -146,7 +144,7 @@ class BasicTest {
 
     @TestCase
     func toJson() {
-        let b = Basic()
+        let b = BasicClass()
         b.i8 = 1
         b.i16 = -2
         b.i32 = 3

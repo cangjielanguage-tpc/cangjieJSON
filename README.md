@@ -19,8 +19,8 @@
 
 ## 1. 使用限制
 
-- 目前仅支持修饰 `class` 类型，暂不支持 `enum` 类型、`struct` 类型。
-- `@JsonAdapter`修饰的类，必须要有一个**无参的构造函数**。
+- 目前支持修饰 `class`、`struct` 类型，暂不支持 `enum` 类型。
+- `@JsonAdapter`修饰的类或结构体，必须要有一个**无参的构造函数**。
 
 ## 2. 如何集成使用
 
@@ -115,7 +115,7 @@ let jsonString: String = obj.toJson() // Basic 对象序列化为 JSON 字符串
 
 ### 3.1 `@JsonAdapter` 宏
 
-用于修饰 class 类型（支持泛型），使其实现 `IJsonAdapter<T>` 接口，`IJsonAdapter<T>`的接口定义如下：
+用于修饰 class、struct 类型（支持泛型），使其实现 `IJsonAdapter<T>` 接口，`IJsonAdapter<T>`的接口定义如下：
 
 ```cangjie
 public interface IJsonAdapter<T> {
@@ -209,7 +209,10 @@ println(b.toJson())
 
 在子类的序列化和反序列化的过程中，为了使其包含父类的成员变量，`@JsonAdapter` 支持一个可选的 `withSuperClass` 属性，用于指定其父类类型。
 
-> 注意：在这种情况下，父类也必须使用 `@JsonAdapter` 修饰。
+> 注意：
+>
+> - 在这种情况下，父类也必须使用 `@JsonAdapter` 修饰。
+> - `@JsonAdapter` 修饰 struct 类型时，不支持 `withSuperClass` 属性。
 
 示例如下：
 
@@ -237,7 +240,7 @@ main() {
 
 #### 3.1.2 `withGenericType` 属性
 
-实际上，`@JsonAdapter` 可以用于修饰一个泛型类，但是**该泛型类型不能参与序列化和反序列化的过程**（比如，@JsonIgnore 修饰的成员变量的类型可以使用该泛型类型）。
+实际上，`@JsonAdapter` 可以用于修饰一个泛型类或泛型结构体，但是**该泛型类型不能参与序列化和反序列化的过程**（比如，@JsonIgnore 修饰的成员变量的类型可以使用该泛型类型）。
 
 如果泛型类型需要参与序列化和反序列化的过程，`@JsonAdapter` 提供了一个可选的 `withGenericType` 属性用于指定其泛型变元。
 
@@ -270,7 +273,7 @@ main() {
 
 ### 3.2 `@JsonName` 宏
 
-用于修饰 class 里的成员，使其在序列化和反序列化过程中使用新的名字。例如：
+用于修饰 class 或 struct 里的成员，使其在序列化和反序列化过程中使用新的名字。例如：
 
 ```cangjie
 @JsonAdapter
@@ -291,7 +294,7 @@ main() {
 
 ### 3.3 `@JsonIgnore` 宏
 
-用于修饰 class 里的成员，使其不参与序列化和反序列化。例如：
+用于修饰 class 或 struct 里的成员，使其不参与序列化和反序列化。例如：
 
 ```cangjie
 // IgnoreClass 没有使用 @JsonAdapter 修饰
@@ -339,7 +342,7 @@ main() {
 
 ### 3.4 `@JsonIgnoreNull` 宏
 
-用于修饰 class 里的成员，如果该成员值为 None，则不进行序列化；反序列化仍然正常执行。例如：
+用于修饰 class 或 struct 里的成员，如果该成员值为 None，则不进行序列化；反序列化仍然正常执行。例如：
 
 ```cangjie
 @JsonAdapter

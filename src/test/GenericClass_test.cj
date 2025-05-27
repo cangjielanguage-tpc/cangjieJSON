@@ -18,7 +18,7 @@ public class GenericChild<T> <: GenericParent<T> {
 }
 
 @Test
-class GenericParentChildTest {
+class GenericClassTest {
     @TestCase
     func genericChild() {
         let input = #"{"parentData":{"d1":1,"d2":2},"childData":{"d1":11,"d2":22}}"#

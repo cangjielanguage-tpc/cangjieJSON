@@ -30,8 +30,10 @@ func jsonAdapterImpl(attr: Tokens, input: Tokens): Tokens {
             ret = HandleClass(cd).doExpend(attr)
         case ed: EnumDecl =>
             ret = HandleEnum(ed).doExpend(attr)
+        case sd: StructDecl =>
+            ret = HandleStruct(sd).doExpend(attr)
         case _ =>
-            diagReport(DiagReportLevel.ERROR, input, "Can only be used on ClassDecl or EnumDecl", "Expected ClassDecl or EnumDecl")
+            diagReport(DiagReportLevel.ERROR, input, "Can only be used on class or struct types", "Expect class or struct")
     }
 
     // 展开完一个class之后，需要重置全局信息，以便展开下一个class 时全局数据保证是空的

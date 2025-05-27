@@ -7,7 +7,7 @@ import cjjson.macros.*
 import std.collection.*
 
 @Test
-class BasicTypeExtendTest {
+class PrimitiveTypeExtendTest {
     @TestCase
     func stringConvert() {
         let value = String.fromJson("hello".toJson())

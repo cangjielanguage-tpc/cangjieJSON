@@ -7,7 +7,7 @@ import cjjson.macros.*
 import std.collection.*
 
 @JsonAdapter
-public class Simple {
+public struct SimpleStruct {
     public var code: Int64 = 0
     public var message: String = ""
 
@@ -18,17 +18,17 @@ public class Simple {
     }
 }
 
-// 在其他 @JsonAdapter 修饰的类中，可以使用 Simple 作为成员变量类型，或者 Array、ArrayList、HashSet、HashMap 的泛型类型。
+// 在其他 @JsonAdapter 修饰的 struct 中，可以使用 SimpleStruct 作为成员变量类型，或者 Array、ArrayList、HashSet、HashMap 的泛型类型。
 @JsonAdapter
-public class NestedSimple {
-    public var data: Simple = Simple()
-    public var optData: Option<Simple> = None
-    public var array: Array<Simple> = Array()
-    public var map: HashMap<String, Simple> = HashMap()
+public struct NestedSimpleStruct {
+    public var data: SimpleStruct = SimpleStruct()
+    public var optData: Option<SimpleStruct> = None
+    public var array: Array<SimpleStruct> = Array()
+    public var map: HashMap<String, SimpleStruct> = HashMap()
 }
 
 @Test
-class NestedTest {
+class NestedStructTest {
     @TestCase
     func fromJson() {
         let input = #"
@@ -46,7 +46,7 @@ class NestedTest {
             }
         }
         "#
-        let ns = NestedSimple.fromJson(input)
+        let ns = NestedSimpleStruct.fromJson(input)
         @Assert(ns.data.code, 123)
         @Assert(ns.data.message, "hello")
         @Assert(ns.optData.isNone())
@@ -63,12 +63,12 @@ class NestedTest {
 
     @TestCase
     func toJson() {
-        let ns = NestedSimple()
-        ns.data = Simple(1, "hello")
-        ns.optData = Simple(2, "cangjie")
-        ns.array = [ Simple(3, "333"), Simple(4, "444") ]
+        var ns = NestedSimpleStruct()
+        ns.data = SimpleStruct(1, "hello")
+        ns.optData = SimpleStruct(2, "cangjie")
+        ns.array = [ SimpleStruct(3, "333"), SimpleStruct(4, "444") ]
         ns.map = HashMap([
-            ("key1", Simple(5, "555"))
+            ("key1", SimpleStruct(5, "555"))
         ])
         let expectJson = #"{"data":{"code":1,"message":"hello"},"optData":{"code":2,"message":"cangjie"},"array":[{"code":3,"message":"333"},{"code":4,"message":"444"}],"map":{"key1":{"code":5,"message":"555"}}}"#
         @Assert(ns.toJson(), expectJson)

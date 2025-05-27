@@ -25,10 +25,11 @@ public class ClassWithEqutable <: Equatable<ClassWithEqutable> {
     }
 
     public operator func ==(right: ClassWithEqutable): Bool {
-        return this.a == right.a
+        return this.a == right.a && this.b == right.b
     }
+
     public operator func !=(right: ClassWithEqutable): Bool {
-        return !(this.a == right.a)
+        return this.a != right.a || this.b != right.b
     }
 }
 

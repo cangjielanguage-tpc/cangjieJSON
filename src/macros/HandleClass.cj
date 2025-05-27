@@ -14,7 +14,7 @@ class HandleClass {
     private var genericType: Tokens = Tokens()
 
     private var isOpen: Bool = false    // 表示是否是一个 open 的 class
-    
+
     public init(cd: ClassDecl) {
         this.cd = cd
 
@@ -376,7 +376,7 @@ class HandleClass {
                             "`static` member variable must use @JsonIgnore",
                             "must use @JsonIgnore")
                     }
-                     this.allFields.append(field)
+                    this.allFields.append(field)
                 case _ => ()
             }
         }

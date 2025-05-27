@@ -13,6 +13,12 @@ public class NewNameClass {
     public var name: String = ""
 }
 
+@JsonAdapter
+public struct NewNameStruct {
+    @JsonName["newName"]
+    public var name: String = ""
+}
+
 @Test
 class JsonNameTest {
     @TestCase
@@ -25,6 +31,19 @@ class JsonNameTest {
     func useNewName() {
         let input = #"{"newName":"123"}"#
         let obj = NewNameClass.fromJson(input)
+        @Assert(obj.name, "123")
+    }
+
+    @TestCase
+    func structUseOldName() {
+        let input = #"{"name":"123"}"#
+        @ExpectThrows[JsonFieldNotExist](NewNameStruct.fromJson(input))
+    }
+
+    @TestCase
+    func structUseNewName() {
+        let input = #"{"newName":"123"}"#
+        let obj = NewNameStruct.fromJson(input)
         @Assert(obj.name, "123")
     }
 }

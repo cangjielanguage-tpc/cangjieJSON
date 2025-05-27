@@ -2,7 +2,7 @@ package cjjson
 
 public import encoding.json.*
 
-public interface IJsonAdapter<T> {
+public interface  IJsonAdapter<T> {
     static func fromJson(str: String): T {
         fromJsonValue(JsonValue.fromStr(str))
     }

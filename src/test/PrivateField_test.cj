@@ -20,13 +20,35 @@ public class ClassWithPrivateField {
     }
 }
 
+@JsonAdapter
+public struct StructWithPrivateField {
+    private var code: Int64 = 0
+    private var message: String = ""
+
+    public func getCode(): Int64 {
+        return code
+    }
+
+    public prop msg: String {
+        get() { return message }
+    }
+}
+
 @Test
 class PrivateFieldTest {
+    let input = #"{"code":123,"message":"hello"}"#
+
     @TestCase
-    func allowPrivateFields() {
-        let input = #"{"code":123,"message":"hello"}"#
+    func classAllowPrivateFields() {
         let obj = ClassWithPrivateField.fromJson(input)
         @Assert(obj.getCode(), 123)
         @Assert(obj.msg, "hello")
+    }
+
+    @TestCase
+    func structAllowPrivateFields() {
+        let obj2 = StructWithPrivateField.fromJson(input)
+        @Assert(obj2.getCode(), 123)
+        @Assert(obj2.msg, "hello")
     }
 }
