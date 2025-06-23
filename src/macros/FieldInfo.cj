@@ -7,6 +7,7 @@ class FieldInfo {
     public let vd: VarDecl
     public var isIgnore: Bool
     public var isIgnoreNull: Bool
+    public var useDefault: Bool
     public var jsonName: ?String
     public var typeNode: ?TypeNode = None
 
@@ -18,6 +19,7 @@ class FieldInfo {
         let identifierString = vd.identifier.value
         isIgnore = GlobalInfo.current().isJsonIgnore(identifierString)
         isIgnoreNull = GlobalInfo.current().isJsonIgnoreNull(identifierString)
+        useDefault = GlobalInfo.current().isJsonDefault(identifierString)
         jsonName = GlobalInfo.current().getJsonName(identifierString)
 
         // 没有用 @JsonIgnore 标记的成员，检查是否显式的声明了其类型

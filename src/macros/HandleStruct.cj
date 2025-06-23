@@ -161,13 +161,24 @@ class HandleStruct {
                 )
             }
 
-            funcBody.append(quote(
-                try {
-                    $assignExpr
-                } catch (e: JsonTypeMismatch) {
-                    throw JsonTypeMismatch($(this.structName.toString()), $jsonName, e.message)
-                }
-            ))
+            let expr = if (field.useDefault) {
+                // 如果该成员标记了 @JsonDefault，仅当 json 字符串中包含该字段时，才对成员变量进行解析赋值，否则保持默认值。
+                quote(
+                    if (jsonObj.containsKey($jsonName)) {
+                        $assignExpr
+                    }
+                )
+            } else {
+                quote(
+                    try {
+                        $assignExpr
+                    } catch (e: JsonTypeMismatch) {
+                        throw JsonTypeMismatch($(this.structName.toString()), $jsonName, e.message)
+                    }
+                )
+            }
+
+            funcBody.append(expr)
         }
 
         return FuncDecl(quote(

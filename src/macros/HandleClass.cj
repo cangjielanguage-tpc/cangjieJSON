@@ -74,13 +74,24 @@ class HandleClass {
                 )
             }
 
-            funcBody.append(quote(
-                try {
-                    $assignExpr
-                } catch (e: JsonTypeMismatch) {
-                    throw JsonTypeMismatch($(this.className.toString()), $jsonName, e.message)
-                }
-            ))
+            let expr = if (field.useDefault) {
+                // 如果该成员标记了 @JsonDefault，仅当 json 字符串中包含该字段时，才对成员变量进行解析赋值，否则保持默认值。
+                quote(
+                    if (jsonObj.containsKey($jsonName)) {
+                        $assignExpr
+                    }
+                )
+            } else {
+                quote(
+                    try {
+                        $assignExpr
+                    } catch (e: JsonTypeMismatch) {
+                        throw JsonTypeMismatch($(this.className.toString()), $jsonName, e.message)
+                    }
+                )
+            }
+
+            funcBody.append(expr)
         }
 
         return FuncDecl(quote(
@@ -180,26 +191,35 @@ class HandleClass {
             let jsonName = field.getJsonName()
             let typeInfo = field.vd.declType
 
-            let callFn = if (isOptionType(typeInfo)) {
+            let assignExpr = if (isOptionType(typeInfo)) {
                 let baseType = getOptionBaseType(typeInfo)
                 quote(
-                    if (!jsonObj.containsKey($jsonName)) {
-                        throw JsonFieldNotExist($(this.className.toString()), $jsonName)
-                    }
-                    obj.$identifier = Option<$baseType>.fromJsonValue(jsonObj.get($jsonName).getOrThrow())
+                    obj.$identifier = Option<$baseType>.fromJsonValue(jsonObj.get($jsonName) ?? JsonNull())
                 )
             } else {
                 quote(
-                    if (!jsonObj.containsKey($jsonName)) {
-                        throw JsonFieldNotExist($(this.className.toString()), $jsonName)
-                    }
-                    obj.$identifier = $typeInfo.fromJsonValue(jsonObj.get($jsonName).getOrThrow())
+                    obj.$identifier = $typeInfo.fromJsonValue(jsonObj.get($jsonName).getOrThrow({=> JsonFieldNotExist($(this.className.toString()), $jsonName)}))
                 )
             }
 
-            funcBody.append(quote(
-                $callFn
-            ))
+            let expr = if (field.useDefault) {
+                // 如果该成员标记了 @JsonDefault，仅当 json 字符串中包含该字段时，才对成员变量进行解析赋值，否则保持默认值。
+                quote(
+                    if (jsonObj.containsKey($jsonName)) {
+                        $assignExpr
+                    }
+                )
+            } else {
+                quote(
+                    try {
+                        $assignExpr
+                    } catch (e: JsonTypeMismatch) {
+                        throw JsonTypeMismatch($(this.className.toString()), $jsonName, e.message)
+                    }
+                )
+            }
+
+            funcBody.append(expr)
         }
 
         return FuncDecl(quote(
@@ -259,7 +279,6 @@ class HandleClass {
         while (offset < attr.size) {
             try {
                 let (expr, off) = parseExprFragment(attr, startFrom: offset)
-                // expr.dump()
                 match (expr) {
                     case ae: AssignExpr =>
                         let key = ae.leftExpr.toTokens().toString()

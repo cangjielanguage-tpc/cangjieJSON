@@ -2,18 +2,19 @@
 
 通过提供以下宏，来简化仓颉代码中 JSON 序列化和反序列化的开发：
 
-- 提供 `@JsonAdapter` 宏用于修饰 class，为其自动生成序列化和反序列化的成员方法；
-- 提供 `@JsonName["newName"]` 宏用于修饰 class 里的成员，使其在序列化和反序列化过程中使用别名；
-- 提供 `@JsonIgnore` 宏用于修饰 class 里的成员，使其不参与序列化和反序列化；
-- 提供 `@JsonIgnoreNull` 宏用于修饰 class 里的成员，如果该成员值为 None，则不进行序列化；反序列化仍然正常执行。
+- 提供 `@JsonAdapter` 宏用于修饰 class/struct，为其自动生成序列化和反序列化的成员方法；
+- 提供 `@JsonName["newName"]` 宏用于修饰 class/struct 里的成员，使其在序列化和反序列化过程中使用别名；
+- 提供 `@JsonIgnore` 宏用于修饰 class/struct 里的成员，使其不参与序列化和反序列化；
+- 提供 `@JsonIgnoreNull` 宏用于修饰 class/struct 里的成员，如果该成员值为 None，则不进行序列化；反序列化仍然正常执行。
+- 提供 `@JsonDefault` 宏用于修饰 class/struct 里的成员，在反序列化的时候，如果json字符串中不存在该字段，则保持默认值。
 - 提供 `AnyType` 类型，用于表示任意可能的 JSON 类型（bool、int、float、string、array、object、null）。
 
 同时对外暴露了如下接口：
-- `IJsonAdapter<T>` 接口：序列化和反序列化的接口，使用 `@JsonAdapter` 修饰的 class 默认都实现了该接口；
-- `JsonTypeMismatch` 异常类：在反序列化时，如果JSON的数据类型与 class 成员的类型不一致，会抛出该异常；
-- `JsonFieldNotExist` 异常类：在反序列化时，如果 class 的成员变量名字，在 JSON 字符串中找不到对应的 key，会抛出该异常。
+- `IJsonAdapter<T>` 接口：序列化和反序列化的接口，使用 `@JsonAdapter` 修饰的 class/struct 默认都实现了该接口；
+- `JsonTypeMismatch` 异常类：在反序列化时，如果JSON的数据类型与 class/struct 成员的类型不一致，会抛出该异常；
+- `JsonFieldNotExist` 异常类：在反序列化时，如果 class/struct 的成员变量名字，在 JSON 字符串中找不到对应的 key，会抛出该异常。
 - `JsonGetValueException` 异常类，调用 `AnyType` 的 `getValue<T>()` 方法时，如果类型不匹配，会抛出该异常。
-- ~~`DataModelExtend` 接口：获取 `DataModel` 的类型，仅用于宏展开的代码调用，开发者无需关注。~~
+- `IJsonValueExtend` 接口：为 `JsonValue` 类型提供了一些扩展，更方便地访问 json 对象。
 
 > 备注：版本变更请点击[此处](./CHANGELOG.md)查看。
 
@@ -381,7 +382,31 @@ main() {
 }
 ```
 
-### 3.5 AnyType 类型
+### 3.5 `@JsonDefault` 宏
+
+用于修饰 class 或 struct 里的成员，如果 json 字符串中没有提供对应的字段，则反序列化时保持默认值。例如：
+
+```cangjie
+@JsonAdapter
+public class Example {
+    @JsonDefault
+    public var a: String = "default"
+}
+
+main() {
+    // 如下 json 字符串没有字段 a
+    let input = #"{}"#
+    let obj = Example.fromJson(input)
+    println(obj.a) // 打印: default
+
+    // 如下 json 字符串中有字段 a
+    let input2 = #"{"a":"aaa"}"#
+    let obj2 = Example.fromJson(input2)
+    println(obj2.a) // 打印：aaa
+}
+```
+
+### 3.6 AnyType 类型
 
 `AnyType` 可用于表示任意可能的 JSON 类型（bool、int、float、string、array、object、null）。其接口定义如下：
 
