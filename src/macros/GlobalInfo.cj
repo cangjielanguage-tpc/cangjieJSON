@@ -26,7 +26,7 @@ class GlobalInfo {
     }
 
     public func setJsonIgnore(fieldName: String) {
-        jsonIgnoreSet.put(fieldName)
+        jsonIgnoreSet.add(fieldName)
     }
 
     public func isJsonIgnore(fieldName: String): Bool {
@@ -34,7 +34,7 @@ class GlobalInfo {
     }
 
     public func setJsonIgnoreNull(fieldName: String) {
-        jsonIgnoreNullSet.put(fieldName)
+        jsonIgnoreNullSet.add(fieldName)
     }
     
     public func isJsonIgnoreNull(fieldName: String) {
@@ -42,7 +42,7 @@ class GlobalInfo {
     }
 
     public func setJsonName(fieldName: String, jsonName: String) {
-        jsonNameMap.put(fieldName, jsonName)
+        jsonNameMap.add(fieldName, jsonName)
     }
 
     public func getJsonName(fieldName: String): ?String {
@@ -50,7 +50,7 @@ class GlobalInfo {
     }
 
     public func setJsonDefault(fieldName: String) {
-        jsonDefaulteSet.put(fieldName)
+        jsonDefaulteSet.add(fieldName)
     }
 
     public func isJsonDefault(fieldName: String) {

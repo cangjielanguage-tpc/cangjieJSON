@@ -1,7 +1,7 @@
 package cjjson
 
 import std.collection.*
-import encoding.json.*
+import stdx.encoding.json.*
 
 extend Int64 <: IJsonAdapter<Int64> {
     public static func fromJsonValue(jsonValue: JsonValue): Int64 {
@@ -241,7 +241,7 @@ extend<V> HashMap<String, V> <: IJsonAdapter<HashMap<String, V>> where  V <: IJs
         match(jsonValue) {
             case obj: JsonObject =>
                 for ((key, value) in obj.getFields()) {
-                    map.put(key, V.fromJsonValue(value))
+                    map.add(key, V.fromJsonValue(value))
                 }
             case _ => throw JsonTypeMismatch("HashMap", jsonValue.kind().toString())
         }

@@ -42,7 +42,7 @@ class HandleClass {
             }
         }
         if (!hasAdded) {
-            cd.superTypes.append(refType)
+            cd.superTypes.add(refType)
         }
     }
 
@@ -347,10 +347,10 @@ class HandleClass {
         let gc = GenericConstraint()
         gc.keyword = Token(TokenKind.WHERE)
         gc.typeArgument = RefType(genericType)
-        gc.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+        gc.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
 
         if (gcList.size == 0) {
-            this.cd.genericConstraint.append(gc)
+            this.cd.genericConstraint.add(gc)
         } else {
             var hasAdd = false
             for (item in gcList) {
@@ -367,13 +367,13 @@ class HandleClass {
                         }
                     }
                     if (!hasAdd) {
-                        item.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+                        item.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
                         hasAdd = true
                     }
                 }
             }
             if (!hasAdd) {
-                this.cd.genericConstraint.append(gc)
+                this.cd.genericConstraint.add(gc)
             }
         }
     }
@@ -395,20 +395,20 @@ class HandleClass {
                             "`static` member variable must use @JsonIgnore",
                             "must use @JsonIgnore")
                     }
-                    this.allFields.append(field)
+                    this.allFields.add(field)
                 case _ => ()
             }
         }
 
-        cd.body.decls.append(fromJsonFunc())
-        cd.body.decls.append(toJsonFunc())
-        cd.body.decls.append(fromJsonValueFunc())
-        cd.body.decls.append(toJsonValueFunc())
+        cd.body.decls.add(fromJsonFunc())
+        cd.body.decls.add(toJsonFunc())
+        cd.body.decls.add(fromJsonValueFunc())
+        cd.body.decls.add(toJsonValueFunc())
 
         // 只有在有可能被继承的情况下，才需要生成这2个方法，用于子类调用父类的对应方法。
         if (this.isOpen) {
-            cd.body.decls.append(fromJsonValueInheritFunc())
-            cd.body.decls.append(toJsonValueInheritFunc())
+            cd.body.decls.add(fromJsonValueInheritFunc())
+            cd.body.decls.add(toJsonValueInheritFunc())
         }
 
         return cd.toTokens()

@@ -94,10 +94,10 @@ class HandleStruct {
         let gc = GenericConstraint()
         gc.keyword = Token(TokenKind.WHERE)
         gc.typeArgument = RefType(genericType)
-        gc.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+        gc.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
 
         if (gcList.size == 0) {
-            this.sd.genericConstraint.append(gc)
+            this.sd.genericConstraint.add(gc)
         } else {
             var hasAdd = false
             for (item in gcList) {
@@ -114,13 +114,13 @@ class HandleStruct {
                         }
                     }
                     if (!hasAdd) {
-                        item.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+                        item.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
                         hasAdd = true
                     }
                 }
             }
             if (!hasAdd) {
-                this.sd.genericConstraint.append(gc)
+                this.sd.genericConstraint.add(gc)
             }
         }
     }
@@ -135,7 +135,7 @@ class HandleStruct {
             }
         }
         if (!hasAdded) {
-            sd.superTypes.append(refType)
+            sd.superTypes.add(refType)
         }
     }
 
@@ -258,15 +258,15 @@ class HandleStruct {
                             "`static` member variable must use @JsonIgnore",
                             "must use @JsonIgnore")
                     }
-                    this.allFields.append(field)
+                    this.allFields.add(field)
                 case _ => ()
             }
         }
 
-        sd.body.decls.append(fromJsonFunc())
-        sd.body.decls.append(toJsonFunc())
-        sd.body.decls.append(fromJsonValueFunc())
-        sd.body.decls.append(toJsonValueFunc())
+        sd.body.decls.add(fromJsonFunc())
+        sd.body.decls.add(toJsonFunc())
+        sd.body.decls.add(fromJsonValueFunc())
+        sd.body.decls.add(toJsonValueFunc())
 
         return sd.toTokens()
     }

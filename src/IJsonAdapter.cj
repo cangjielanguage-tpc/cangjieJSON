@@ -1,6 +1,6 @@
 package cjjson
 
-public import encoding.json.*
+public import stdx.encoding.json.*
 
 public interface  IJsonAdapter<T> {
     static func fromJson(str: String): T {
