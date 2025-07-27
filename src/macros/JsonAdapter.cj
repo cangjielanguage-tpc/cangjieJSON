@@ -6,9 +6,10 @@ import std.ast.*
 class JsonAdapterClassAttr {
     public static const WITH_SUPER_CLASS = "withSuperClass"
     public static const WITH_GENERIC_TYPE = "withGenericType"
+    public static const ALLOW_NULL = "allowNull"
 
     public static func availableAttrs(): String {
-        return "[${WITH_SUPER_CLASS}, ${WITH_GENERIC_TYPE}]"
+        return "[${WITH_SUPER_CLASS}, ${WITH_GENERIC_TYPE}, ${ALLOW_NULL}]"
     }
 }
 

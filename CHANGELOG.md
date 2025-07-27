@@ -1,3 +1,7 @@
+# tag_v0.1.3 (2025-07-27)
+
+【新增】`@JsonAdaptor` 新增支持属性 `allowNull`，当输入的 JSON 字符串中未提供某个字段、或者字段值为 null 时，则反序列化时 class/struct 对应的成员保持为初始默认值，不会抛出异常。
+
 # tag_v0.1.2 (2025-06-24)
 
 【新增】新增 `@JsonDefault` 宏

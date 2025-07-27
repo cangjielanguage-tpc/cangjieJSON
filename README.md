@@ -44,7 +44,7 @@
 [dependencies]
   [dependencies.cjjson]
     git = "https://gitcode.com/Cangjie-TPC/cangjieJSON.git"
-    tag = "tag_v0.1.0"
+    tag = "tag_v0.1.0"  # 请修改为具体要使用的版本。
 ```
 
 在您工程的 cjpm.toml 文件所在目录，执行 `cjpm update` 命令即可同步更新本仓源码。
@@ -269,6 +269,34 @@ main() {
     let input = #"{"data":{"a":123,"b":"hello"}}"#
     let res = Result<MyData>.fromJson(input)
     println(res.toJson()) // 输出：{"data":{"a":123,"b":"hello"}}
+}
+```
+
+#### 3.1.2 `allowNull` 属性
+
+在反序列化的时候，当不确定 JSON 字符串中哪些字段可能不存在、或者值为 null，又不希望 class/struct 的成员变量都使用 `Option<T>` 类型来表示，那么可以在 `@JsonAdaptor` 宏中使用 `allowNull` 属性，当输入的 JSON 字符串中字段不存在或者值为null时，class/struct 里的成员变量保持初始默认值，不会抛出异常。
+
+示例如下：
+
+```cangjie
+@JsonAdapter[allowNull]
+public class AllowNullClass {
+    public var a: String = "default"
+    public var b: String = "default"
+    public var c: String = ""
+}
+
+main() {
+    // 其中字段 a 缺失，字段 b 为 null。
+    let input = #"{
+        "b": null,
+        "c": "ccc"
+    }"#
+
+    let obj = AllowNullClass.fromJson(input)
+    println(obj.a)  // 输出：default
+    println(obj.b)  // 输出：default
+    println(obj.c)  // 输出：ccc
 }
 ```
 

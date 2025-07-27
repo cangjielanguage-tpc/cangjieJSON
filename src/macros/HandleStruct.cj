@@ -10,6 +10,7 @@ class HandleStruct {
 
     private var withGenericType: Bool = false
     private var genericType: Tokens = Tokens()
+    private var allowNull: Bool = false
 
     public init(sd: StructDecl) {
         this.sd = sd
@@ -42,9 +43,18 @@ class HandleStruct {
                             this.withGenericType = true
                             this.genericType = value.toTokens()
                         } else {
-                            diagReport(DiagReportLevel.ERROR, key.toTokens(),
+                            diagReport(DiagReportLevel.ERROR, ae.toTokens(),
                             "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type",
                             "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type")
+                        }
+                    case re: RefExpr =>
+                        let key = re.identifier.value
+                        if (key == JsonAdapterClassAttr.ALLOW_NULL) {
+                            this.allowNull = true
+                        } else {
+                            diagReport(DiagReportLevel.ERROR, re.toTokens(),
+                            "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}",
+                            "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}")
                         }
                     case _ =>
                         diagReport(DiagReportLevel.ERROR, expr.toTokens(),
@@ -161,10 +171,10 @@ class HandleStruct {
                 )
             }
 
-            let expr = if (field.useDefault) {
-                // 如果该成员标记了 @JsonDefault，仅当 json 字符串中包含该字段时，才对成员变量进行解析赋值，否则保持默认值。
+            let expr = if (this.allowNull || field.useDefault) {
+                // 如果该 class 标记了 allowNull，或者该成员标记了 @JsonDefault，则仅当 json 字符串中包含该字段时，才对成员变量进行解析赋值，否则保持默认值。
                 quote(
-                    if (jsonObj.containsKey($jsonName)) {
+                    if (jsonObj.containsKey($jsonName)  && jsonObj.get($jsonName).getOrThrow().toString() != "null") {
                         $assignExpr
                     }
                 )
