@@ -2,6 +2,12 @@ macro package cjjson.macros
 
 import std.ast.*
 import std.collection.*
+import stdx.serialization.serialization.DataModelException
+import stdx.serialization.serialization.DataModelInt
+import stdx.serialization.serialization.DataModelString
+import stdx.serialization.serialization.DataModelStruct
+import stdx.encoding.json.JsonObject
+import stdx.serialization.serialization.DataModelFloat
 
 class HandleClass {
     private let cd: ClassDecl
@@ -14,7 +20,7 @@ class HandleClass {
     private var genericType: Token = Token()
 
     private var isOpen: Bool = false    // 表示是否是一个 open 的 class
-    
+
     public init(cd: ClassDecl) {
         this.cd = cd
 
@@ -42,7 +48,7 @@ class HandleClass {
             }
         }
         if (!hasAdded) {
-            cd.superTypes.append(refType)
+            cd.superTypes.add(refType)
         }
     }
 
@@ -57,27 +63,75 @@ class HandleClass {
             let jsonName = field.getJsonName()
             let typeInfo = field.vd.declType
             let typeInfoString = typeInfo.toTokens().toString()
+            let str = "strVal_" + identifier.value
+            let dm = Token(TokenKind.IDENTIFIER, str)
 
-            let callFn = if (isOptionType(typeInfo)) {
+            // 添加字段存在性检查
+            funcBody.append(quote(
+               let $(dm) = dms.get($jsonName)
+               if (!$(dm).isNull()) {
+                  try {
+            ))
+
+		    // 根据类型生成反序列化代码
+            if (isOptionType(typeInfo)) {
                 let baseType = getOptionBaseType(typeInfo)
-                quote(obj.$identifier = Option<$baseType>.deserialize(dms.get($jsonName)))
+                if (isAnyType(baseType)) { // ?Any 反序列化
+                    funcBody.append(quote(
+                        obj.$identifier = JsonUtil.parseModel($(dm))
+                    ))
+                } else {
+                    funcBody.append(quote(
+                        obj.$identifier = Option<$baseType>.deserialize($(dm))
+                    ))
+                }
+            } else if (isHashMapStringAnyType(typeInfo)) { // 为 HashMap<String, Any> 生成反序列化代码
+                funcBody.append(quote(
+                    obj.$identifier = JsonUtil.deserializeHashMapStringAny($(dm))
+                ))
+            } else if (isHashMapStringStringType(typeInfo)) { // 为 HashMap<String, String> 生成反序列化代码
+              funcBody.append(quote(
+                    obj.$identifier = JsonUtil.deserializeHashMapStringString($(dm))
+                ))
+            }else if (isSeqAnyType(typeInfo)) { // 为 Array<Any>、ArrayList<Any> 生成反序列化代码，统一反序列化为 Array<Any>
+                funcBody.append(quote(
+                    obj.$identifier = JsonUtil.deserializeArrayAny($(dm))
+                ))
+            } else if (isAnyType(typeInfo)) { // 为 Any 生成反序列化代码
+                funcBody.append(quote(
+                    obj.$identifier = JsonUtil.deserializeAny($(dm))
+                ))
             } else {
-                quote(obj.$identifier = $typeInfo.deserialize(dms.get($jsonName)))
+                if (typeInfoString == "String") {
+                    funcBody.append(quote(
+                        match ($(dm)) {
+                        	case dmInt: DataModelInt => obj.$identifier = dmInt.getValue().toString()
+                            case dmFloat: DataModelFloat => obj.$identifier = dmFloat.getValue().toString()
+                            case dmObj: DataModelStruct => obj.$identifier = $(dm).toJson().toString()
+                            case _ => obj.$identifier = String.deserialize($(dm))
+                        }
+                    ))
+                } else if (isNumberType(typeInfo)) {
+                    funcBody.append(
+                        quote(
+                    obj.$identifier = $typeInfo.fromJson($(dm).toJson().toJsonString())
+                ))
+                } else {
+                    funcBody.append(quote(
+                        obj.$identifier = $typeInfo.deserialize($(dm))
+                    ))
+                }
             }
 
+            // 添加类型不匹配的异常处理
             funcBody.append(quote(
-                try {
-                    $(callFn)
-                } catch (e: DataModelException) {
-                    let dm = dms.get($jsonName)
-                    if (dm.isNull()) {
-                        throw JsonFieldNotExist($(this.className.toString()), $jsonName)
-                    } else {
-                        throw JsonTypeMismatch($(this.className.toString()), $jsonName, $(typeInfoString), dm.toJsonType())
+                    } catch (e: DataModelException) {
+                        throw JsonTypeMismatch($(this.className.toString()), $jsonName, $(typeInfoString), $(dm).toJsonType())
                     }
                 }
             ))
         }
+
 
         let exceptionString = "${className.toString()}: not a DataModelStruct"
 
@@ -116,8 +170,20 @@ class HandleClass {
 
             let callFn = if (isOptionType(typeInfo)) {
                 let baseType = getOptionBaseType(typeInfo)
-                quote(obj.$identifier = Option<$baseType>.deserialize(dms.get($jsonName)))
-            } else {
+                if (isAnyType(baseType)) { // ?Any 反序列化
+                    quote(obj.$identifier = JsonUtil.parseModel(dms.get($jsonName)))
+                } else {
+                    quote(obj.$identifier = Option<$baseType>.deserialize(dms.get($jsonName)))
+                }
+            } else if (isHashMapStringAnyType(typeInfo)) { // 为 HashMap<String, Any> 生成反序列化代码
+                quote(obj.$identifier = JsonUtil.deserializeHashMapStringAny(dms.get($jsonName)))
+            } else if (isSeqAnyType(typeInfo)) { // 为 Array<Any>、ArrayList<Any> 生成反序列化代码，统一反序列化为 Array<Any>
+                quote(obj.$identifier = JsonUtil.deserializeArrayAny(dms.get($jsonName)))
+            } else if (isAnyType(typeInfo)) { // 为 Any 生成反序列化代码
+                quote(obj.$identifier = JsonUtil.deserializeAny(dms.get($jsonName)))
+            } else if (isHashMapStringStringType(typeInfo)) { // 为 HashMap<String, String> 生成反序列化代码
+                quote(obj.$identifier = JsonUtil.deserializeHashMapStringString(dms.get($jsonName)))
+            }else {
                 quote(obj.$identifier = $typeInfo.deserialize(dms.get($jsonName)))
             }
 
@@ -164,7 +230,8 @@ class HandleClass {
                 ))
             } else {
                 funcBody.append(quote(
-                    dms.add(field($(jsonName), $(field.vd.identifier)))
+                    // dms.add(field($(jsonName), $(field.vd.identifier)))
+                    dms.add(Field($(jsonName), JsonUtil.toModel($(field.vd.identifier)) ?? throw Exception("Failed to serialize field: " + $(jsonName))))
                 ))
             }
         }
@@ -206,7 +273,9 @@ class HandleClass {
                 ))
             } else {
                 funcBody.append(quote(
-                    dms.add(field($(jsonName), $(field.vd.identifier)))
+                    //dms.add(field($(jsonName), $(field.vd.identifier)))
+                    dms.add(Field($(jsonName), JsonUtil.toModel($(field.vd.identifier)) ?? throw Exception("Failed to serialize field: " + $(jsonName))))
+
                 ))
             }
         }
@@ -337,10 +406,10 @@ class HandleClass {
         let gc = GenericConstraint()
         gc.keyword = Token(TokenKind.WHERE)
         gc.typeArgument = RefType(genericType.toTokens())
-        gc.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+        gc.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
 
         if (gcList.size == 0) {
-            this.cd.genericConstraint.append(gc)
+            this.cd.genericConstraint.add(gc)
         } else {
             var hasAdd = false
             for (item in gcList) {
@@ -357,13 +426,13 @@ class HandleClass {
                         }
                     }
                     if (!hasAdd) {
-                        item.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+                        item.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
                         hasAdd = true
                     }
                 }
             }
             if (!hasAdd) {
-                this.cd.genericConstraint.append(gc)
+                this.cd.genericConstraint.add(gc)
             }
         }
 
@@ -383,26 +452,26 @@ class HandleClass {
             match (decl) {
                 case vd: VarDecl =>
                     let field = FieldInfo(vd)
-                    if ((field.isPrivate || field.isStatic) && !field.isIgnore) {
+                    if ( field.isStatic && !field.isIgnore) {
                         diagReport(DiagReportLevel.ERROR, vd.toTokens(),
-                            "`private` or `static` member variable must use @JsonIgnore",
+                            "`static` member variable must use @JsonIgnore",
                             "must use @JsonIgnore")
                     }
-                     this.allFields.append(field)
+                     this.allFields.add(field)
                 case _ => ()
             }
         }
 
-        cd.body.decls.append(createFromJsonFunc())
-        cd.body.decls.append(createToJsonFunc())
+        cd.body.decls.add(createFromJsonFunc())
+        cd.body.decls.add(createToJsonFunc())
 
-        cd.body.decls.append(createSerializeFunc())
-        cd.body.decls.append(createDeserializeFunc())
+        cd.body.decls.add(createSerializeFunc())
+        cd.body.decls.add(createDeserializeFunc())
 
         // 只有在有可能被继承的情况下，才需要生成这2个方法，用于子类调用父类的对应方法。
         if (this.isOpen) {
-            cd.body.decls.append(createSerializeToFunc())
-            cd.body.decls.append(createDeserializeToFunc())
+            cd.body.decls.add(createSerializeToFunc())
+            cd.body.decls.add(createDeserializeToFunc())
         }
 
         return cd.toTokens()

@@ -4,6 +4,12 @@ package cjjson
 public class AnyType <: IJsonAdapter<AnyType> {
     public var jsonValue: JsonValue = JsonNull()
 
+    public init(value: JsonValue){
+        this.jsonValue = value
+    }
+
+    public init(){}
+
     public func isArray(): Bool {
         if (let JsonKind.JsArray <- jsonValue.kind()) {
             return true
