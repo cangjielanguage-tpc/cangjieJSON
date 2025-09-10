@@ -479,25 +479,25 @@ class HandleClass {
             }else {
                 if (isAnyType(typeInfo)) { 
                     quote(
-                        case $fieldName  => obj.$identifier = JsonUtil.streamFromJsonForAny(r)
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForAny(r)
                     )
                 } else if (isSeqListAnyTypeForStream(typeInfo)) {
                     quote(
-                        case $fieldName  => obj.$identifier = JsonUtil.streamFromJsonForListAny(r)
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForListAny(r)
                     )
                     
                 } else if (isMapAnyTypeForStream(typeInfo)) {
                     quote(
-                        case $fieldName  => obj.$identifier = JsonUtil.streamFromJsonForHashMapAny(r)
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForHashMapAny(r)
                     )
                     
                 } else if (isSeqArrayAnyTypeForStream(typeInfo)){
                     quote(
-                        case $fieldName  => obj.$identifier = JsonUtil.streamFromJsonForArryAny(r)
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForArryAny(r)
                     )
                 } else {
                     quote(
-                        case $fieldName  => obj.$identifier = r.readValue<$baseType>()
+                        case $jsonName  => obj.$identifier = r.readValue<$baseType>()
                     )
                 }
             }
@@ -550,35 +550,35 @@ class HandleClass {
             let assignExpr = if (isOptionType(typeInfo)) {
                 if (isOptionAnyType(typeInfo)){
                     quote(
-                        case $fieldName  => obj.$identifier = JsonUtil.streamFromJsonForOptionAny(r)
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForOptionAny(r)
                     )
                 }else{
                     quote(
-                        case $fieldName  => obj.$identifier = r.readValue<Option<$baseType>>()
+                        case $jsonName  => obj.$identifier = r.readValue<Option<$baseType>>()
                     )
                 }
             } else {
                 if (isAnyType(typeInfo)) { 
                     quote(
-                        case $fieldName  => obj.$identifier = JsonUtil.streamFromJsonForAny(r)
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForAny(r)
                     )
                 } else if (isSeqListAnyTypeForStream(typeInfo)) {
                     quote(
-                        case $fieldName  => obj.$identifier = JsonUtil.streamFromJsonForListAny(r)
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForListAny(r)
                     )
                     
                 } else if (isMapAnyTypeForStream(typeInfo)) {
                     quote(
-                        case $fieldName  => obj.$identifier = JsonUtil.streamFromJsonForHashMapAny(r)
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForHashMapAny(r)
                     )
                     
                 } else if (isSeqArrayAnyTypeForStream(typeInfo)){
                     quote(
-                        case $fieldName  => obj.$identifier = JsonUtil.streamFromJsonForArryAny(r)
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForArryAny(r)
                     )
                 } else {
                     quote(
-                        case $fieldName  => obj.$identifier = r.readValue<$baseType>()
+                        case $jsonName  => obj.$identifier = r.readValue<$baseType>()
                     )
                 }
             }
