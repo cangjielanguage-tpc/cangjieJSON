@@ -22,4 +22,5 @@ func JsonIgnore_BasicTest() {
     let input = #"{"a":"aaa","b":[1,2,3],"c":456}"#
     let expectOutput = #"{"c":456}"#
     @Assert(IgnoreClass.fromJson(input).toJson(), expectOutput)
+    @Assert(IgnoreClass.fromStreamJson(input).toStreamJson(), expectOutput)
 }

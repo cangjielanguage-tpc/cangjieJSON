@@ -1,8 +1,11 @@
 package cjjson
+ 
+import cjjson.stream.*
 
 // 用于表示任意类型。
-public class AnyType <: IJsonAdapter<AnyType> {
+public class AnyType <: IJsonAdapter<AnyType> & IStreamJsonAdapter<AnyType> {
     public var jsonValue: JsonValue = JsonNull()
+    public var jsonValueStream: Any = 0 
 
     public init(value: JsonValue){
         this.jsonValue = value
@@ -86,4 +89,15 @@ public class AnyType <: IJsonAdapter<AnyType> {
     public func toJson(): String {
         return jsonValue.toString()
     }
+
+    public func toJson(writer: JsonStreamWriter) {
+        JsonUtil.toModelStream(jsonValueStream, writer)
+    }
+
+    public static func fromJson(reader: JsonStreamReader): AnyType {
+        let obj = AnyType()
+        obj.jsonValueStream =  JsonUtil.streamFromJsonForAny(reader)
+        return obj
+    }
+
 }

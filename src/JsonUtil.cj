@@ -3,9 +3,11 @@
  */
 package cjjson
 
-import std.collection.Map
-import std.collection.HashMap
+import std.collection.*
 import stdx.encoding.json.*
+import std.convert.*
+import cjjson.stream.*
+
 
 public interface ISerialize {
     func serialize(): DataModel
@@ -134,4 +136,218 @@ public class JsonUtil {
             case _ => None
         }
     }
+
+
+
+
+public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = None):Unit {
+        return match (obj) {
+            case v: JsonStreamSerializable  => v.toJson(w)
+            case v: Option<Any> => match (v) {
+                case Some(v) => toModelStream(v, w,parent: obj)
+                case None    => var df = w.writeValue("null")
+            }
+            case v: Collection<Any> =>
+                if (checkRefEq(v, parent)) {
+                    return  // 禁止套娃
+                }
+                w.startArray()
+                for (item in v) {
+                    toModelStream(item, w,parent: obj)
+                }
+                w.endArray()
+            case v: Map<String, Any> =>
+                if (checkRefEq(v, parent)) {
+                    return  // 禁止套娃
+                }
+                w.startObject()
+                for ((key, value) in v) {
+                     w.writeName(key)
+                     toModelStream(value, w,parent: obj)
+                }
+                w.endObject()
+            case _ => throw Exception("dddd")
+        }
+    }
+
+    public static func toAnyStream (obj: ArrayList<Any>, w:JsonStreamWriter, parent!: ?Any = None):Unit {
+        return match (obj) {
+            case v: JsonStreamSerializable  => v.toJson(w)
+            case v: Option<Any> => match (v) {
+                case Some(v) => toModelStream(v, w,parent: obj)
+                case None    => var df = w.writeValue("null")
+            }
+            case v: Collection<Any> =>
+                if (checkRefEq(v, parent)) {
+                    return  // 禁止套娃
+                }
+                w.startArray()
+                for (item in v) {
+                    toModelStream(item, w,parent: obj)
+                }
+                w.endArray()
+            case v: Map<String, Any> =>
+                if (checkRefEq(v, parent)) {
+                    return  // 禁止套娃
+                }
+                w.startObject()
+                for ((key, value) in v) {
+                     w.writeName(key)
+                     toModelStream(value, w,parent: obj)
+                }
+                w.endObject()
+            case _ => throw Exception("dddd")
+        }
+    }
+
+    public static func streamFromJsonForOptionAny(reader: JsonStreamReader): ?Any {
+        var peek = reader.peek().getOrThrow()
+        match (peek) {
+            case BeginArray =>
+                              var list = ArrayList<Any>()
+                              reader.startArray()
+                              while (let Some(v) <- reader.peek()) {
+                                if (v != EndArray) {
+                                    list.add(streamFromJsonForOptionAny(reader))
+                                } else {
+                                    break
+                                }
+                              }
+                              reader.endArray()
+                              return list
+            case BeginObject => 
+                                var map = HashMap<String, Any>()
+                                reader.startObject()
+                                while (let Some(v) <- reader.peek()) {
+                                    if (v != EndObject) {
+                                         map.add(reader.readName(), streamFromJsonForOptionAny(reader))
+                                    } else {
+                                        break
+                                    }
+                                }
+                                reader.endObject()
+                                return map
+            case JsonString =>  return reader.readValue<String>()
+            case JsonNumber =>  var bby = reader.readValueBytes()
+                                 for (i in 0..bby.size) {
+                                    if (bby[i] == 46) {
+                                        return Float64.parse( unsafe { String.fromUtf8Unchecked(bby) })
+                                    }
+                                 }
+                                return Int64.parse( unsafe { String.fromUtf8Unchecked(bby) })
+            case JsonBool =>    return reader.readValue<Bool>()
+            case JsonNull =>    return None
+            case _ => throw Exception("暂不支持反序列化该类型")
+        }
+    }
+
+
+    public static func streamFromJsonForAny(reader: JsonStreamReader): Any {
+        var peek = reader.peek().getOrThrow()
+        match (peek) {
+            case BeginArray =>
+                                var list = ArrayList<Any>()
+                                reader.startArray()
+                                while (let Some(v) <- reader.peek()) {
+                                    if (v != EndArray) {
+                                        list.add(streamFromJsonForAny(reader))
+                                    }else {
+                                        break
+                                    }
+                                }
+                                reader.endArray()
+                                return list
+            case BeginObject => 
+                                var map = HashMap<String, Any>()
+                                reader.startObject()
+                                while (let Some(v) <- reader.peek()) {
+                                    if (v != EndObject) {
+                                        map.add(reader.readName(), streamFromJsonForAny(reader))
+                                    } else {
+                                        break
+                                    }
+                                }
+                                reader.endObject()
+                                return map
+
+            case JsonString =>  return reader.readValue<String>()
+            case JsonNumber =>  var bby = reader.readValueBytes()
+                                 for (i in 0..bby.size) {
+                                    if (bby[i] == 46) {
+                                        return Float64.parse( unsafe { String.fromUtf8Unchecked(bby) })
+                                    }
+                                 }
+                                return Int64.parse( unsafe { String.fromUtf8Unchecked(bby) })
+            case JsonBool =>    return reader.readValue<Bool>()
+            case JsonNull =>    return reader.readValue<Option<Int64>>()
+            case _ => throw Exception("暂不支持反序列化该类型")
+        }
+    }
+
+
+
+    public static func streamFromJsonForArryAny(reader: JsonStreamReader): Array<Any> {
+        var peek = reader.peek().getOrThrow()
+        match (peek) {
+            case BeginArray =>
+                              var list = ArrayList<Any>()
+                              reader.startArray()
+                              while (let Some(v) <- reader.peek()) {
+                                if (v != EndArray) {
+                                    list.add(streamFromJsonForAny(reader))
+                                } else {
+                                    break
+                                }
+                              }
+                              reader.endArray()
+                              return unsafe {list.getRawArray()}
+            case _ => throw Exception("暂不支持反序列化该类型")
+        }
+
+    }
+
+
+
+    public static func streamFromJsonForListAny(reader: JsonStreamReader): ArrayList<Any> {
+        var peek = reader.peek().getOrThrow()
+        match (peek) {
+            case BeginArray =>
+                              var list = ArrayList<Any>()
+                              reader.startArray()
+                              while (let Some(v) <- reader.peek()) {
+                                if (v != EndArray) {
+                                    list.add(streamFromJsonForAny(reader))
+                                } else {
+                                    break
+                                }
+                              }
+                              reader.endArray()
+                              return list
+            case _ => throw Exception("暂不支持反序列化该类型")
+        }
+    }
+
+
+    public static func streamFromJsonForHashMapAny(reader: JsonStreamReader): HashMap<String, Any> {
+        var peek = reader.peek().getOrThrow()
+        match (peek) {
+            case BeginObject => 
+                                var map = HashMap<String, Any>()
+                                reader.startObject()
+                                while (let Some(v) <- reader.peek()) {
+                                    if (v != EndObject) {
+                                        map.add(reader.readName(), streamFromJsonForAny(reader))
+                                    } else {
+                                        break
+                                    }
+                                }
+                                reader.endObject()
+                                return map
+            case _ => throw Exception("暂不支持反序列化该类型")
+        }
+
+    }
+
+
+
 }
