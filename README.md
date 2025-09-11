@@ -408,8 +408,12 @@ public class AnyType <: IJsonAdapter<AnyType> {
 ```cangjie
 // 序列化 反序列化
 public interface  IStreamJsonAdapter<T> <:JsonStreamDeserializable<T> & JsonStreamSerializable {
-    static func fromJson(r: JsonStreamReader): T
-    func toJson(w: JsonStreamWriter): Unit
+   
+    static func fromJson(r: JsonStreamReader): T  // 自定义反序列化
+    func toJson(w: JsonStreamWriter): Unit  // 自定义序列化
+
+    static func fromStreamJson(str: String): T // 反序列化 自动创建了流、默认配置、使用方便
+    func toStreamJson(): String  // 序列化自动创建了流、默认配置、使用方便
 }
 
 // 反序列化流解析器
