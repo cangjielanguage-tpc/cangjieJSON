@@ -88,3 +88,49 @@ func isNumberType(node: TypeNode) {
         case _ => return false
     }
 }
+
+
+func isSeqListAnyTypeForStream(typeInfo: TypeNode): Bool {
+    let refType = typeInfo as RefType ?? return false
+    match (refType.identifier.value) {
+        case "ArrayList" | "HashSet" => () // 序列类型
+        case _ => return false
+    }
+    let elementType = refType.typeArguments[0] as RefType ?? return false
+    return elementType.identifier.value == "Any"
+}
+
+func isSeqArrayAnyTypeForStream(typeInfo: TypeNode): Bool {
+    let refType = typeInfo as RefType ?? return false
+    match (refType.identifier.value) {
+        case "Array" => () // 序列类型
+        case _ => return false
+    }
+    let elementType = refType.typeArguments[0] as RefType ?? return false
+    return elementType.identifier.value == "Any"
+}
+
+func isMapAnyTypeForStream(typeInfo: TypeNode): Bool {
+    let refType = typeInfo as RefType ?? return false
+    match (refType.identifier.value) {
+            case "HashMap" => () // 映射类型
+            case _ => return false
+        }
+    let elementType = refType.typeArguments[1] as RefType ?? return false
+    return elementType.identifier.value == "Any"
+}
+
+func isOptionAnyType(node: TypeNode): Bool {
+    match(node) {
+        case pt: PrefixType => isAnyType(pt.baseType)
+        case rt: RefType =>
+            if (rt.identifier.value == "Option") {
+                let elementType = rt.typeArguments[0] as RefType ?? return false
+                return elementType.identifier.value == "Any"
+            } else {
+                return false
+            }
+        case _ => return false
+    }
+
+}

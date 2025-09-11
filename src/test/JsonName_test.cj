@@ -2,7 +2,6 @@ package cjjson.test
 
 import std.unittest.*
 import std.unittest.testmacro.*
-
 import cjjson.*
 import cjjson.macros.*
 import std.collection.*
@@ -15,12 +14,14 @@ public class NewNameClass {
 
 @Test
 func JsonName_UseOldName() {
-    let input = #"{"name":"123"}"#
-    @ExpectThrows[JsonFieldNotExist](NewNameClass.fromJson(input))
+    let input = #"{"newName":""}"#
+    @Assert(NewNameClass().toStreamJson(), input)
+    @Assert(NewNameClass().toJson(), input)
 }
 
 @Test
 func JsonName_UseNewName() {
     let input = #"{"newName":"123"}"#
+    @Assert(NewNameClass.fromStreamJson(input).toStreamJson(), input)
     @Assert(NewNameClass.fromJson(input).toJson(), input)
 }

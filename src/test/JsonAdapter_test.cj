@@ -2,7 +2,6 @@ package cjjson.test
 
 import std.unittest.*
 import std.unittest.testmacro.*
-
 import cjjson.*
 import cjjson.macros.*
 import std.collection.*
@@ -21,6 +20,7 @@ public class Basic {
 @Test
 func JsonAdapter_BasicTest() {
     let input: String = #"{"a":123,"b":"bbbbb","c":null,"d":[1,2,3],"e":["s1","s2","s3"],"f":{"f1":123,"f2":456}}"#
+    @Assert(Basic.fromStreamJson(input).toStreamJson(), input)
     @Assert(Basic.fromJson(input).toJson(), input)
 }
 
@@ -35,6 +35,8 @@ func Test_JsonAdapter_ClassWithInterface() {
     let input: String = #"{"a": 123}"#
     let obj = ClassWithInterface.fromJson(input)
     @Assert(obj.a, 123)
+    let obj_stream = ClassWithInterface.fromStreamJson(input)
+    @Assert(obj_stream.a, 123)
 }
 
 // Case 3：即使类实现了其他接口，也不影响 @JsonAdapter 的使用。
@@ -57,6 +59,11 @@ func Test_JsonAdapter_ClassWithEqutable() {
     let target = ClassWithEqutable()
     target.a = 123
     @Assert(obj, target)
+
+    let obj_stream = ClassWithEqutable.fromStreamJson(input)
+    let target_stream = ClassWithEqutable()
+    target_stream.a = 123
+    @Assert(obj_stream, target_stream)
 }
 
 // Case 4：存在父类，并且未使用 withSuperClass 属性
@@ -76,10 +83,13 @@ func Test_JsonAdapter_ChildNotMarkParent() {
 
     let c = ChildNotMarkParent.fromJson(input)
     @Assert(c.toJson(), #"{"b":"hello"}"#)
+
+    let c_stream = ChildNotMarkParent.fromStreamJson(input)
+    @Assert(c_stream.toStreamJson(), #"{"b":"hello"}"#)
 }
 
 // Case 5：存在父类，使用了 withSuperClass 属性
-@JsonAdapter[withSuperClass=Parent]
+@JsonAdapter[withSuperClass = Parent]
 public class ChildMarkParent <: Parent {
     public var b: String = ""
 }
@@ -90,6 +100,10 @@ func Test_JsonAdapter_ChildMarkParent() {
     let c = ChildMarkParent.fromJson(input)
     @Assert(c.a, 123)
     @Assert(c.b, "hello")
+
+    let c_s = ChildMarkParent.fromStreamJson(input)
+    @Assert(c_s.a, 123)
+    @Assert(c_s.b, "hello")
 }
 
 // Case 6: 存在泛型，并且未使用 withGenericType 属性
@@ -113,6 +127,10 @@ func Test_JsonAdapter_GenericNotMark() {
     let obj = GenericNotMark<MyData>.fromJson(input)
     @Assert(obj.data.isNone())
     @Assert(obj.toJson(), #"{"a":123}"#)
+
+    let obj_s = GenericNotMark<MyData>.fromStreamJson(input)
+    @Assert(obj_s.data.isNone())
+    @Assert(obj_s.toStreamJson(), #"{"a":123}"#)
 }
 
 // Case 7：存在泛型，使用了 withGenericType 属性
@@ -128,6 +146,10 @@ func Test_JsonAdapter_GenericMark() {
     let obj = GenericMark<MyData>.fromJson(input)
     @Assert(obj.data.isSome())
     @Assert(obj.toJson(), input)
+
+    let obj_s = GenericMark<MyData>.fromStreamJson(input)
+    @Assert(obj_s.data.isSome())
+    @Assert(obj_s.toStreamJson(), input)
 }
 
 // Case 8：同时具有泛型和泛型父类。
@@ -136,7 +158,7 @@ public open class GenericParent<T> {
     public var pData: ?T = None
 }
 
-@JsonAdapter[withSuperClass = GenericParent<T>; withGenericType = T]
+@JsonAdapter[withSuperClass = GenericParent<T> ; withGenericType = T]
 public class GenericChild<T> <: GenericParent<T> {
     public var cData: ?T = None
 }
@@ -150,4 +172,11 @@ func Test_JsonAdapter_GeneircChild() {
     @Assert(c.pData.getOrThrow().d2, 2)
     @Assert(c.cData.getOrThrow().d1, 11)
     @Assert(c.cData.getOrThrow().d2, 22)
+
+    let c_s = GenericChild<MyData>.fromStreamJson(input)
+
+    @Assert(c_s.pData.getOrThrow().d1, 1)
+    @Assert(c_s.pData.getOrThrow().d2, 2)
+    @Assert(c_s.cData.getOrThrow().d1, 11)
+    @Assert(c_s.cData.getOrThrow().d2, 22)
 }

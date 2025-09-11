@@ -40,15 +40,22 @@ class HandleClass {
 
     private func handleSuperTypes() {
         let refType = RefType(quote(IJsonAdapter<$(className)>))
+        let refTypeStream = RefType(quote(IStreamJsonAdapter<$(className)>))
+        var hasAddedStream = false
         var hasAdded = false
         for (item in cd.superTypes) {
             if (item.toTokens().toString() == refType.toTokens().toString()) {
                 hasAdded = true
-                break
+            }
+            if (item.toTokens().toString() == refTypeStream.toTokens().toString()) {
+                hasAddedStream = true
             }
         }
         if (!hasAdded) {
             cd.superTypes.add(refType)
+        }
+        if (!hasAddedStream) {
+            cd.superTypes.add(refTypeStream)
         }
     }
 
@@ -322,6 +329,309 @@ class HandleClass {
         ))
     }
 
+    private func createToStreamJsonFunc(): FuncDecl {
+            let openModifier = if (isOpen) {
+                quote(open)
+            } else {
+                quote()
+            }
+            var funcBody = Tokens()
+
+
+            for (field in allFields) {
+                if (field.isIgnore) {
+                    continue
+                }
+                let jsonName = field.getJsonName()
+                let typeInfo = field.vd.declType
+                
+                if (field.isIgnoreNull && isOptionType(typeInfo)) {
+
+                    funcBody.append(
+                        quote(
+                        if (let Some(v) <- $(field.vd.identifier)) {
+                            w.writeName($(jsonName))
+                            JsonUtil.toModelStream($(field.vd.identifier), w)
+                            // $(field.vd.identifier).toJson(w)
+                        }
+                    ))
+                } else {
+                    if (isOptionType(typeInfo) || isAnyType(typeInfo) || isSeqListAnyTypeForStream(typeInfo) || isMapAnyTypeForStream(typeInfo)) { 
+                            funcBody.append(
+                                quote(
+                                w.writeName($(jsonName))
+                                JsonUtil.toModelStream($(field.vd.identifier), w)
+                            ))
+                    } else if (isSeqArrayAnyTypeForStream(typeInfo)){
+                            funcBody.append(
+                                quote(
+                                w.writeName($(jsonName))
+                                JsonUtil.toModelStream($(field.vd.identifier), w)
+                            ))
+                    } else {
+                            funcBody.append(
+                                quote(
+                                w.writeName($(jsonName))
+                                $(field.vd.identifier).toJson(w)
+                            ))
+                    }
+                }
+            }
+
+            if (withSuperClass) {
+                funcBody.append(quote(
+                    super.toStreamJsonInherit(w)
+                ))
+            }
+            return FuncDecl(
+                quote(
+                public $openModifier func toJson(w: JsonStreamWriter): Unit {
+                    w.startObject()
+                    $funcBody
+                    w.endObject()
+                }
+            ))
+    }
+    private func createToStreamJsonInheritFunc(): FuncDecl {
+        var funcBody = Tokens()
+
+        if (withSuperClass) {
+            funcBody.append(quote(
+                super.toStreamJsonInherit(w)
+            ))
+        }
+
+        for (field in allFields) {
+            if (field.isIgnore) {
+                continue
+            }
+            let jsonName = field.getJsonName()
+            let typeInfo = field.vd.declType
+            if (field.isIgnoreNull && isOptionType(field.vd.declType)) {
+                funcBody.append(
+                    quote(
+                    if (let Some(v) <- $(field.vd.identifier)) {
+                        w.writeName($(jsonName))
+                        JsonUtil.toModelStream($(field.vd.identifier), w)
+                        // $(field.vd.identifier).toJson(w)
+                    }
+                ))
+            } else {
+                if (isAnyType(typeInfo) ||isOptionType(typeInfo) || isSeqListAnyTypeForStream(typeInfo) || isMapAnyTypeForStream(typeInfo)) { 
+                        funcBody.append(
+                            quote(
+                            w.writeName($(jsonName))
+                            JsonUtil.toModelStream($(field.vd.identifier), w)
+                        ))
+                }else if (isSeqArrayAnyTypeForStream(typeInfo)){
+                        funcBody.append(
+                            quote(
+                            w.writeName($(jsonName))
+                            JsonUtil.toModelStream($(field.vd.identifier), w)
+                        ))
+                } else {
+                        funcBody.append(
+                            quote(
+                            w.writeName($(jsonName))
+                            $(field.vd.identifier).toJson(w)
+                        ))
+                }
+            }
+        }
+
+        let openModifier = if (isOpen) {
+            quote(open)
+        } else {
+            quote()
+        }
+
+        return FuncDecl(
+            quote(
+            public $openModifier func toStreamJsonInherit(w: JsonStreamWriter): Unit {
+                $funcBody
+            }
+        ))
+    }
+
+    private func createfromStreamJsonFunc(): FuncDecl {
+        var funcBody = Tokens()
+        for (field in allFields) {
+            if (field.isIgnore) {
+                continue
+            }
+            let identifier = field.vd.identifier
+            let jsonName = field.getJsonName()
+            let typeInfo = field.vd.declType
+            let fieldName = identifier.toTokens().toString()
+            let baseType = getOptionBaseType(typeInfo)
+
+            let assignExpr = if (isOptionType(typeInfo)) {
+                if (isOptionAnyType(typeInfo)){
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForOptionAny(r)
+                    )
+                }else{
+                    quote(
+                        case $jsonName  => obj.$identifier = r.readValue<Option<$baseType>>()
+                    )
+                }
+
+            }else {
+                if (isAnyType(typeInfo)) { 
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForAny(r)
+                    )
+                } else if (isSeqListAnyTypeForStream(typeInfo)) {
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForListAny(r)
+                    )
+                    
+                } else if (isMapAnyTypeForStream(typeInfo)) {
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForHashMapAny(r)
+                    )
+                    
+                } else if (isSeqArrayAnyTypeForStream(typeInfo)){
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForArryAny(r)
+                    )
+                } else {
+                    quote(
+                        case $jsonName  => obj.$identifier = r.readValue<$baseType>()
+                    )
+                }
+            }
+            funcBody.append(assignExpr)
+        }
+
+        if (withSuperClass) {
+            funcBody.append(quote(
+                case _ => $superClass.fromStreamJsonInherit(obj, readfiledName, r)
+            ))
+        } else {
+            funcBody.append(quote(
+                case _ => r.skip()
+            ))
+        }
+
+
+        return FuncDecl(
+            quote(
+            public static func fromJson(r: JsonStreamReader): $className {
+                var obj = $className()
+                r.startObject()
+                while (let Some(v) <- r.peek()) {
+                    if(v != JsonStreamEndObject) {
+                        let readfiledName = r.readName()
+                        match (readfiledName) {
+                            $funcBody
+                        }
+                    } else {
+                        break
+                    }
+                }
+                r.endObject()
+                return obj
+            }
+        ))
+    }
+
+    private func createFromStreamJsonInheritFunc(): FuncDecl {
+        var funcBody = Tokens()
+        for (field in allFields) {
+            if (field.isIgnore) {
+                continue
+            }
+            let identifier = field.vd.identifier
+            let jsonName = field.getJsonName()
+            let typeInfo = field.vd.declType
+            let fieldName = identifier.toTokens().toString()
+            let baseType = getOptionBaseType(typeInfo)
+            let assignExpr = if (isOptionType(typeInfo)) {
+                if (isOptionAnyType(typeInfo)){
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForOptionAny(r)
+                    )
+                }else{
+                    quote(
+                        case $jsonName  => obj.$identifier = r.readValue<Option<$baseType>>()
+                    )
+                }
+            } else {
+                if (isAnyType(typeInfo)) { 
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForAny(r)
+                    )
+                } else if (isSeqListAnyTypeForStream(typeInfo)) {
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForListAny(r)
+                    )
+                    
+                } else if (isMapAnyTypeForStream(typeInfo)) {
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForHashMapAny(r)
+                    )
+                    
+                } else if (isSeqArrayAnyTypeForStream(typeInfo)){
+                    quote(
+                        case $jsonName  => obj.$identifier = JsonUtil.streamFromJsonForArryAny(r)
+                    )
+                } else {
+                    quote(
+                        case $jsonName  => obj.$identifier = r.readValue<$baseType>()
+                    )
+                }
+            }
+
+            funcBody.append(assignExpr)
+        }
+
+        if (withSuperClass) {
+            funcBody.append(quote(
+                case _ => $superClass.fromStreamJsonInherit(obj, readfiledName, r)
+            ))
+        } else {
+            funcBody.append(quote(
+                case _ => r.skip()
+            ))
+        }
+
+        return FuncDecl(
+            quote(
+            public static func fromStreamJsonInherit(obj: $className, filedName: String, r: JsonStreamReader): Unit {
+                match (filedName) {
+                    $funcBody
+                }
+            }
+        ))
+    } 
+    private func createToStreamJson(): FuncDecl {
+        let openModifier = if (isOpen) {
+            quote(open)
+        } else {
+            quote()
+        }
+        return FuncDecl(
+            quote(
+            public $openModifier func toStreamJson(): String {
+                let stream = ByteBuffer()
+                var writer = JsonStreamWriter(stream)
+                toJson(writer)
+                writer.flush()
+                return String.fromUtf8(readToEnd(stream))
+            }
+        ))
+    }
+
+    private func createfromStreamJson(): FuncDecl {
+        return FuncDecl(
+            quote(
+        public static func fromStreamJson(str: String): $className {
+            fromJson(JsonStreamReader(ByteBuffer(str.toArray())))
+        }
+    ))
+    }
+
     private func handleAttr(attr: Tokens): Unit {
         if (attr.size == 0) {
             return
@@ -388,8 +698,7 @@ class HandleClass {
 
         let gpTokens = this.cd.genericParam.parameters.toTokens()
         if (gpTokens.size != 1) {
-            diagReport(DiagReportLevel.ERROR, gpTokens,
-                "can only have one generic param",
+            diagReport(DiagReportLevel.ERROR, gpTokens, "can only have one generic param",
                 "can only have one generic param")
             return
         }
@@ -406,39 +715,48 @@ class HandleClass {
         let gc = GenericConstraint()
         gc.keyword = Token(TokenKind.WHERE)
         gc.typeArgument = RefType(genericType.toTokens())
-        gc.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
 
         if (gcList.size == 0) {
             this.cd.genericConstraint.add(gc)
+            gc.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
+            gc.upperBounds.add(RefType(quote(IStreamJsonAdapter<T>)))
         } else {
             var hasAdd = false
+            var hasAddStream = false
             for (item in gcList) {
                 let ta = item.typeArgument
                 if (ta.toTokens().toString() == genericType.toTokens().toString()) {
                     for (value in item.upperBounds) {
-                        match(value) {
+                        match (value) {
                             case rt: RefType =>
                                 if (rt.identifier.toTokens().toString() == "IJsonAdapter") {
                                     hasAdd = true
-                                    break
+                                }
+                                if (rt.identifier.toTokens().toString() == "IStreamJsonAdapter") {
+                                    hasAddStream = true
                                 }
                             case _ => ()
                         }
                     }
                     if (!hasAdd) {
                         item.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
+                        gc.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
                         hasAdd = true
+                    }
+                    if (!hasAddStream) {
+                        item.upperBounds.add(RefType(quote(IStreamJsonAdapter<T>)))
+                        gc.upperBounds.add(RefType(quote(IStreamJsonAdapter<T>)))
+                        hasAddStream = true
                     }
                 }
             }
-            if (!hasAdd) {
+            if (!hasAdd || !hasAddStream) {
                 this.cd.genericConstraint.add(gc)
             }
-        }
-
-        println("class = ${this.cd.toTokens().toString()}")
-
     }
+
+    println("class = ${this.cd.toTokens().toString()}")
+}
 
     public func doExpend(attr: Tokens): Tokens {
         handleAttr(attr)
@@ -468,10 +786,17 @@ class HandleClass {
         cd.body.decls.add(createSerializeFunc())
         cd.body.decls.add(createDeserializeFunc())
 
+        cd.body.decls.add(createfromStreamJsonFunc())
+        cd.body.decls.add(createToStreamJsonFunc())
+
+        cd.body.decls.add(createToStreamJson())
+        cd.body.decls.add(createfromStreamJson())
         // 只有在有可能被继承的情况下，才需要生成这2个方法，用于子类调用父类的对应方法。
         if (this.isOpen) {
             cd.body.decls.add(createSerializeToFunc())
             cd.body.decls.add(createDeserializeToFunc())
+            cd.body.decls.add(createToStreamJsonInheritFunc())
+            cd.body.decls.add(createFromStreamJsonInheritFunc())
         }
 
         return cd.toTokens()

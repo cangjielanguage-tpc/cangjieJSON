@@ -3,8 +3,9 @@ package cjjson
 import std.collection.*
 import stdx.encoding.json.*
 import std.convert.*
+import std.io.*
 
-extend Int64 <: IJsonAdapter<Int64> {
+extend Int64 <: IJsonAdapter<Int64> & IStreamJsonAdapter<Int64> {
     public static func fromJson(str: String): Int64 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -17,9 +18,10 @@ extend Int64 <: IJsonAdapter<Int64> {
     public func toJson(): String {
         return this.toString()
     }
+    
 }
 
-extend Int32 <: IJsonAdapter<Int32> {
+extend Int32 <: IJsonAdapter<Int32> & IStreamJsonAdapter<Int32> {
     public static func fromJson(str: String): Int32 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -33,7 +35,7 @@ extend Int32 <: IJsonAdapter<Int32> {
     }
 }
 
-extend Int16 <: IJsonAdapter<Int16> {
+extend Int16 <: IJsonAdapter<Int16> & IStreamJsonAdapter<Int16>{
     public static func fromJson(str: String): Int16 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -47,7 +49,7 @@ extend Int16 <: IJsonAdapter<Int16> {
     }
 }
 
-extend Int8 <: IJsonAdapter<Int8> {
+extend Int8 <: IJsonAdapter<Int8>  & IStreamJsonAdapter<Int8> {
     public static func fromJson(str: String): Int8 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -61,7 +63,7 @@ extend Int8 <: IJsonAdapter<Int8> {
     }
 }
 
-extend UInt64 <: IJsonAdapter<UInt64> {
+extend UInt64 <: IJsonAdapter<UInt64>  & IStreamJsonAdapter<UInt64> {
     public static func fromJson(str: String): UInt64 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -75,7 +77,7 @@ extend UInt64 <: IJsonAdapter<UInt64> {
     }
 }
 
-extend UInt32 <: IJsonAdapter<UInt32> {
+extend UInt32 <: IJsonAdapter<UInt32>  & IStreamJsonAdapter<UInt32> {
     public static func fromJson(str: String): UInt32 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -89,7 +91,7 @@ extend UInt32 <: IJsonAdapter<UInt32> {
     }
 }
 
-extend UInt16 <: IJsonAdapter<UInt16> {
+extend UInt16 <: IJsonAdapter<UInt16>  & IStreamJsonAdapter<UInt16> {
     public static func fromJson(str: String): UInt16 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -103,7 +105,7 @@ extend UInt16 <: IJsonAdapter<UInt16> {
     }
 }
 
-extend UInt8 <: IJsonAdapter<UInt8> {
+extend UInt8 <: IJsonAdapter<UInt8>  & IStreamJsonAdapter<UInt8> {
     public static func fromJson(str: String): UInt8 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -117,7 +119,7 @@ extend UInt8 <: IJsonAdapter<UInt8> {
     }
 }
 
-extend Float64 <: IJsonAdapter<Float64> {
+extend Float64 <: IJsonAdapter<Float64>  & IStreamJsonAdapter<Float64> {
     public static func fromJson(str: String): Float64 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -132,7 +134,7 @@ extend Float64 <: IJsonAdapter<Float64> {
     }
 }
 
-extend Float32 <: IJsonAdapter<Float32> {
+extend Float32 <: IJsonAdapter<Float32>  & IStreamJsonAdapter<Float32> {
     public static func fromJson(str: String): Float32 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -147,7 +149,7 @@ extend Float32 <: IJsonAdapter<Float32> {
     }
 }
 
-extend Float16 <: IJsonAdapter<Float16> {
+extend Float16 <: IJsonAdapter<Float16>  & IStreamJsonAdapter<Float16> {
     public static func fromJson(str: String): Float16 {
         let dataModel = DataModel.fromJson(JsonValue.fromStr(str))
         match (dataModel) {
@@ -162,7 +164,7 @@ extend Float16 <: IJsonAdapter<Float16> {
     }
 }
 
-extend String <: IJsonAdapter<String> {
+extend String <: IJsonAdapter<String>  & IStreamJsonAdapter<String> {
     public static func fromJson(str: String): String {
 //        let dm = DataModel.fromJson(JsonValue.fromStr(str))
 //        match (dm) {
@@ -176,7 +178,7 @@ extend String <: IJsonAdapter<String> {
     }
 }
 
-extend Rune <: IJsonAdapter<Rune> {
+extend Rune <: IJsonAdapter<Rune> & IStreamJsonAdapter<Rune>{
     public static func fromJson(str: String): Rune {
         return Rune.deserialize(DataModel.fromJson(JsonValue.fromStr(str)))
     }
@@ -185,7 +187,7 @@ extend Rune <: IJsonAdapter<Rune> {
     }
 }
 
-extend Bool <: IJsonAdapter<Bool> {
+extend Bool <: IJsonAdapter<Bool>  & IStreamJsonAdapter<Bool> {
     public static func fromJson(str: String): Bool {
         let dm = DataModel.fromJson(JsonValue.fromStr(str))
         match (dm) {
@@ -199,7 +201,7 @@ extend Bool <: IJsonAdapter<Bool> {
     }
 }
 
-extend<T> Option<T> <: IJsonAdapter<Option<T>> where T <: IJsonAdapter<T> {
+extend<T> Option<T> <: IJsonAdapter<Option<T>> & IStreamJsonAdapter<Option<T>> where T <: IJsonAdapter<T> & IStreamJsonAdapter<T> {
     public static func fromJson(str: String): Option<T> {
         let dm = DataModel.fromJson(JsonValue.fromStr(str))
         return Option<T>.deserialize(dm)
@@ -209,7 +211,7 @@ extend<T> Option<T> <: IJsonAdapter<Option<T>> where T <: IJsonAdapter<T> {
     }
 }
 
-extend<T> Array<T> <: IJsonAdapter<Array<T>> where T <: IJsonAdapter<T> {
+extend<T> Array<T> <: IJsonAdapter<Array<T>> &  IStreamJsonAdapter<Array<T>> where T <: IJsonAdapter<T> & IStreamJsonAdapter<T> {
     public static func fromJson(str: String): Array<T> {
         let dm = DataModel.fromJson(JsonValue.fromStr(str))
         return Array<T>.deserialize(dm)
@@ -219,7 +221,7 @@ extend<T> Array<T> <: IJsonAdapter<Array<T>> where T <: IJsonAdapter<T> {
     }
 }
 
-extend<T> ArrayList<T> <: IJsonAdapter<ArrayList<T>> where T <: IJsonAdapter<T> {
+extend<T> ArrayList<T> <: IJsonAdapter<ArrayList<T>> & IStreamJsonAdapter<ArrayList<T>> where T <: IJsonAdapter<T> & IStreamJsonAdapter<T> {
     public static func fromJson(str: String): ArrayList<T> {
         let dm = DataModel.fromJson(JsonValue.fromStr(str))
         return ArrayList<T>.deserialize(dm)
@@ -229,7 +231,7 @@ extend<T> ArrayList<T> <: IJsonAdapter<ArrayList<T>> where T <: IJsonAdapter<T> 
     }
 }
 
-extend<T> HashSet<T> <: IJsonAdapter<HashSet<T>> where T <: IJsonAdapter<T> & Hashable & Equatable<T> {
+extend<T> HashSet<T> <: IJsonAdapter<HashSet<T>> & IStreamJsonAdapter<HashSet<T>> where T <: IJsonAdapter<T> & IStreamJsonAdapter<T> & Hashable & Equatable<T> {
     public static func fromJson(str: String): HashSet<T> {
         let dm = DataModel.fromJson(JsonValue.fromStr(str))
         return HashSet<T>.deserialize(dm)
@@ -237,9 +239,10 @@ extend<T> HashSet<T> <: IJsonAdapter<HashSet<T>> where T <: IJsonAdapter<T> & Ha
     public func toJson(): String {
         return this.serialize().toJson().toString()
     }
+
 }
 
-extend<K, V> HashMap<K, V> <: IJsonAdapter<HashMap<K, V>> where K <: Hashable & Equatable<K> & IJsonAdapter<K>, V <: IJsonAdapter<V> {
+extend<K, V> HashMap<K, V> <: IJsonAdapter<HashMap<K, V>> & IStreamJsonAdapter<HashMap<K, V>> where K <: Hashable & Equatable<K> & IJsonAdapter<K> & IStreamJsonAdapter<K>, V <: IJsonAdapter<V> & IStreamJsonAdapter<V>{
     public static func fromJson(str: String): HashMap<K, V> {
         let dm = DataModel.fromJson(JsonValue.fromStr(str))
         return HashMap<K, V>.deserialize(dm)

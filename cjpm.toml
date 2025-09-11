@@ -24,7 +24,7 @@
 
 [package]
   cjc-version = "0.53.12"
-  compile-option = "--debug-macro"
+  compile-option = "--debug-macro -O2"
   description = "nothing here"
   link-option = ""
   name = "cjjson"
