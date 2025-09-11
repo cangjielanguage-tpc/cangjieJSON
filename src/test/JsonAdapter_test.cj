@@ -2,7 +2,6 @@ package cjjson.test
 
 import std.unittest.*
 import std.unittest.testmacro.*
-
 import cjjson.*
 import cjjson.macros.*
 import std.collection.*
@@ -38,7 +37,6 @@ func Test_JsonAdapter_ClassWithInterface() {
     @Assert(obj.a, 123)
     let obj_stream = ClassWithInterface.fromStreamJson(input)
     @Assert(obj_stream.a, 123)
-
 }
 
 // Case 3：即使类实现了其他接口，也不影响 @JsonAdapter 的使用。
@@ -66,7 +64,6 @@ func Test_JsonAdapter_ClassWithEqutable() {
     let target_stream = ClassWithEqutable()
     target_stream.a = 123
     @Assert(obj_stream, target_stream)
-    
 }
 
 // Case 4：存在父类，并且未使用 withSuperClass 属性
@@ -92,7 +89,7 @@ func Test_JsonAdapter_ChildNotMarkParent() {
 }
 
 // Case 5：存在父类，使用了 withSuperClass 属性
-@JsonAdapter[withSuperClass=Parent]
+@JsonAdapter[withSuperClass = Parent]
 public class ChildMarkParent <: Parent {
     public var b: String = ""
 }
@@ -161,7 +158,7 @@ public open class GenericParent<T> {
     public var pData: ?T = None
 }
 
-@JsonAdapter[withSuperClass = GenericParent<T>; withGenericType = T]
+@JsonAdapter[withSuperClass = GenericParent<T> ; withGenericType = T]
 public class GenericChild<T> <: GenericParent<T> {
     public var cData: ?T = None
 }

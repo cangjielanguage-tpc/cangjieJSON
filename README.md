@@ -111,7 +111,7 @@ let jsonString: String = obj.toJson() // Basic 对象序列化为 JSON 字符串
 
 > 更多详细示例请查阅 `examples` 目录或 `src/test` 目录。
 
-## 3. 接口详细介绍：
+## 3. 对象模型接口详细介绍：
 
 ### 3.1 `@JsonAdapter` 宏
 
@@ -399,6 +399,61 @@ public class AnyType <: IJsonAdapter<AnyType> {
     public static func fromJson(str: String): AnyType
     public func toJson(): String
 }
+```
+
+## 4. 流模型接口详细介绍：
+
+本库也提供了流模型解析json，优势相比对象模型低内存、低延迟。注解和对象模型一致， 可参考[对象模型接口](#3-对象模型接口详细介绍)。
+
+```cangjie
+// 序列化 反序列化
+public interface  IStreamJsonAdapter<T> <:JsonStreamDeserializable<T> & JsonStreamSerializable {
+    static func fromJson(r: JsonStreamReader): T
+    func toJson(w: JsonStreamWriter): Unit
+}
+
+// 反序列化流解析器
+public class JsonStreamReader {
+}
+// 序列化流解析器
+public class JsonStreamWriter {
+}
+```
+
+示例：
+
+```cangjie
+import cjjson.*
+import cjjson.macros.*
+import cjjson.stream.*
+
+@JsonAdapter
+public class BasicClass {
+    public var s1: String = "i am s1"
+    public var s2: Int64 = 10
+}
+
+//使用方式 一  json 默认设置
+
+//序列化 
+var jsonString = BasicClass().toStreamJson()
+// 反序列化
+var basic:BasicClass = BasicClass.fromStreamJson(jsonString)
+
+
+//使用方式 二 writer reader json可配置
+
+// 序列化
+let stream = ByteBuffer()
+var writer = JsonStreamWriter(stream)
+// writer.WriteConfig = WriteConfig.pretty //配置json
+var jsonString2 = BasicClass().toJson(writer)
+writer.flush()
+// var jsonString2 = String.fromUtf8(readToEnd(stream))
+
+// 反序列化
+var basic2:BasicClass = BasicClass.fromStreamJson(JsonStreamReader(stream))
+
 ```
 
 具体使用示例可参考[单元测试用例源码](./src/test/AnyType_test.cj)

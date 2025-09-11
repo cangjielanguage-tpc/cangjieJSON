@@ -203,11 +203,11 @@ public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = 
     public static func streamFromJsonForOptionAny(reader: JsonStreamReader): ?Any {
         var peek = reader.peek().getOrThrow()
         match (peek) {
-            case BeginArray =>
+            case JsonStreamBeginArray =>
                               var list = ArrayList<Any>()
                               reader.startArray()
                               while (let Some(v) <- reader.peek()) {
-                                if (v != EndArray) {
+                                if (v != JsonStreamEndArray) {
                                     list.add(streamFromJsonForOptionAny(reader))
                                 } else {
                                     break
@@ -215,11 +215,11 @@ public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = 
                               }
                               reader.endArray()
                               return list
-            case BeginObject => 
+            case JsonStreamBeginObject => 
                                 var map = HashMap<String, Any>()
                                 reader.startObject()
                                 while (let Some(v) <- reader.peek()) {
-                                    if (v != EndObject) {
+                                    if (v != JsonStreamEndObject) {
                                          map.add(reader.readName(), streamFromJsonForOptionAny(reader))
                                     } else {
                                         break
@@ -227,16 +227,16 @@ public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = 
                                 }
                                 reader.endObject()
                                 return map
-            case JsonString =>  return reader.readValue<String>()
-            case JsonNumber =>  var bby = reader.readValueBytes()
+            case JsonStreamString =>  return reader.readValue<String>()
+            case JsonStreamNumber =>  var bby = reader.readValueBytes()
                                  for (i in 0..bby.size) {
                                     if (bby[i] == 46) {
                                         return Float64.parse( unsafe { String.fromUtf8Unchecked(bby) })
                                     }
                                  }
                                 return Int64.parse( unsafe { String.fromUtf8Unchecked(bby) })
-            case JsonBool =>    return reader.readValue<Bool>()
-            case JsonNull =>    return None
+            case JsonStreamBool =>    return reader.readValue<Bool>()
+            case JsonStreamNull =>    return None
             case _ => throw Exception("暂不支持反序列化该类型")
         }
     }
@@ -245,11 +245,11 @@ public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = 
     public static func streamFromJsonForAny(reader: JsonStreamReader): Any {
         var peek = reader.peek().getOrThrow()
         match (peek) {
-            case BeginArray =>
+            case JsonStreamBeginArray =>
                                 var list = ArrayList<Any>()
                                 reader.startArray()
                                 while (let Some(v) <- reader.peek()) {
-                                    if (v != EndArray) {
+                                    if (v != JsonStreamEndArray) {
                                         list.add(streamFromJsonForAny(reader))
                                     }else {
                                         break
@@ -257,11 +257,11 @@ public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = 
                                 }
                                 reader.endArray()
                                 return list
-            case BeginObject => 
+            case JsonStreamBeginObject => 
                                 var map = HashMap<String, Any>()
                                 reader.startObject()
                                 while (let Some(v) <- reader.peek()) {
-                                    if (v != EndObject) {
+                                    if (v != JsonStreamEndObject) {
                                         map.add(reader.readName(), streamFromJsonForAny(reader))
                                     } else {
                                         break
@@ -270,16 +270,16 @@ public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = 
                                 reader.endObject()
                                 return map
 
-            case JsonString =>  return reader.readValue<String>()
-            case JsonNumber =>  var bby = reader.readValueBytes()
+            case JsonStreamString =>  return reader.readValue<String>()
+            case JsonStreamNumber =>  var bby = reader.readValueBytes()
                                  for (i in 0..bby.size) {
                                     if (bby[i] == 46) {
                                         return Float64.parse( unsafe { String.fromUtf8Unchecked(bby) })
                                     }
                                  }
                                 return Int64.parse( unsafe { String.fromUtf8Unchecked(bby) })
-            case JsonBool =>    return reader.readValue<Bool>()
-            case JsonNull =>    return reader.readValue<Option<Int64>>()
+            case JsonStreamBool =>    return reader.readValue<Bool>()
+            case JsonStreamNull =>    return reader.readValue<Option<Int64>>()
             case _ => throw Exception("暂不支持反序列化该类型")
         }
     }
@@ -289,11 +289,11 @@ public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = 
     public static func streamFromJsonForArryAny(reader: JsonStreamReader): Array<Any> {
         var peek = reader.peek().getOrThrow()
         match (peek) {
-            case BeginArray =>
+            case JsonStreamBeginArray =>
                               var list = ArrayList<Any>()
                               reader.startArray()
                               while (let Some(v) <- reader.peek()) {
-                                if (v != EndArray) {
+                                if (v != JsonStreamEndArray) {
                                     list.add(streamFromJsonForAny(reader))
                                 } else {
                                     break
@@ -311,11 +311,11 @@ public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = 
     public static func streamFromJsonForListAny(reader: JsonStreamReader): ArrayList<Any> {
         var peek = reader.peek().getOrThrow()
         match (peek) {
-            case BeginArray =>
+            case JsonStreamBeginArray =>
                               var list = ArrayList<Any>()
                               reader.startArray()
                               while (let Some(v) <- reader.peek()) {
-                                if (v != EndArray) {
+                                if (v != JsonStreamEndArray) {
                                     list.add(streamFromJsonForAny(reader))
                                 } else {
                                     break
@@ -331,11 +331,11 @@ public static func toModelStream (obj: Any, w:JsonStreamWriter, parent!: ?Any = 
     public static func streamFromJsonForHashMapAny(reader: JsonStreamReader): HashMap<String, Any> {
         var peek = reader.peek().getOrThrow()
         match (peek) {
-            case BeginObject => 
+            case JsonStreamBeginObject => 
                                 var map = HashMap<String, Any>()
                                 reader.startObject()
                                 while (let Some(v) <- reader.peek()) {
-                                    if (v != EndObject) {
+                                    if (v != JsonStreamEndObject) {
                                         map.add(reader.readName(), streamFromJsonForAny(reader))
                                     } else {
                                         break

@@ -80,10 +80,10 @@ public class JsonStreamReader {
             match (token) {
                 case JsonStreamNull | JsonStreamBool | JsonStreamNumber => nextValue(stringBuffer)
                 case JsonStreamString => nextString(stringBuffer)
-                case BeginArray => nextArray(stringBuffer)
-                case BeginObject => nextObject(stringBuffer)
-                case EndArray | EndObject => ()
-                case Name =>
+                case JsonStreamBeginArray => nextArray(stringBuffer)
+                case JsonStreamBeginObject => nextObject(stringBuffer)
+                case JsonStreamEndArray | JsonStreamEndObject => ()
+                case JsonStreamName =>
                     nextName(stringBuffer)
                     nextNonJsonWhitespace(stringBuffer) // keep the whitespaces between ':' to start of the next token
                     let token = peek().getOrThrow(
@@ -93,8 +93,8 @@ public class JsonStreamReader {
                     match (token) {
                         case JsonStreamNull | JsonStreamBool | JsonStreamNumber => nextValue(stringBuffer)
                         case JsonStreamString => nextString(stringBuffer)
-                        case BeginArray => nextArray(stringBuffer)
-                        case BeginObject => nextObject(stringBuffer)
+                        case JsonStreamBeginArray => nextArray(stringBuffer)
+                        case JsonStreamBeginObject => nextObject(stringBuffer)
                         case _ => throw IllegalStateException("The name must be followed by JSON value.")
                     }
             }
@@ -126,16 +126,16 @@ public class JsonStreamReader {
             case 1 where peeked == PEEK_STATE_NAME || peeked == PEEK_STATE_NONE => // json object
                 if (nextByte == b'"') {
                     peeked = PEEK_STATE_NAME
-                    return JsonToken.Name
+                    return JsonToken.JsonStreamName
                 } else if (nextByte == b'}') {
                     peeked = PEEK_STATE_OBJECT_END
-                    return JsonToken.EndObject
+                    return JsonToken.JsonStreamEndObject
                 }
                 throw IllegalStateException("Expect a string as Json Name, but peeked '${Rune(nextByte)}'.")
 
             case 2 where peeked != PEEK_STATE_VALUE && nextByte == b']' => // json array
                 peeked = PEEK_STATE_ARRAY_END
-                return JsonToken.EndArray
+                return JsonToken.JsonStreamEndArray
             case _ => () // top level value
         }
 
@@ -157,10 +157,10 @@ public class JsonStreamReader {
                 return JsonToken.JsonStreamString
             case b'{' =>
                 peeked = PEEK_STATE_OBJECT_BEGIN
-                return JsonToken.BeginObject
+                return JsonToken.JsonStreamBeginObject
             case b'[' =>
                 peeked = PEEK_STATE_ARRAY_BEGIN
-                return JsonToken.BeginArray
+                return JsonToken.JsonStreamBeginArray
             case _ => throw IllegalStateException("Character not expected: '${Rune(nextByte)}'.")
         }
     }
@@ -172,12 +172,12 @@ public class JsonStreamReader {
             case 5 => () // PEEK_STATE_ARRAY_BEGIN
             case 11 | 10 => // PEEK_STATE_NONE or PEEK_STATE_VALUE
                 if (nextNonJsonWhitespace() != b'[') {
-                    throw IllegalStateException("The next Token is not BeginArray.")
+                    throw IllegalStateException("The next Token is not JsonStreamBeginArray.")
                 }
             case 4 => // PEEK_STATE_NAME
                 throw IllegalStateException("In an object, the name must be handled before the value.")
             case _ => // others
-                throw IllegalStateException("The next Token is not BeginArray.")
+                throw IllegalStateException("The next Token is not JsonStreamBeginArray.")
         }
 
         availLen--
@@ -193,7 +193,7 @@ public class JsonStreamReader {
             case peeked == PEEK_STATE_NONE => if (stacks.top != JsonStateStack.JSON_ARRAY) {
                 throw IllegalStateException("Failed to end array.")
             }
-            case _ => throw IllegalStateException("The next Token is not EndArray.")
+            case _ => throw IllegalStateException("The next Token is not JsonStreamEndArray.")
         }
         availLen--
         index++
@@ -210,9 +210,9 @@ public class JsonStreamReader {
             case 7 => () // PEEK_STATE_OBJECT_BEGIN
             case 11 | 10 => // PEEK_STATE_NONE or PEEK_STATE_VALUE
                 if (nextNonJsonWhitespace() != b'{') {
-                    throw IllegalStateException("The next Token is not BeginObject.")
+                    throw IllegalStateException("The next Token is not JsonStreamBeginObject.")
                 }
-            case _ => throw IllegalStateException("The next Token is not BeginObject.")
+            case _ => throw IllegalStateException("The next Token is not JsonStreamBeginObject.")
         }
         availLen--
         index++
@@ -227,13 +227,13 @@ public class JsonStreamReader {
             case 11 => // PEEK_STATE_NONE
                 if (stacks.top == JsonStateStack.JSON_OBJECT) {
                     if (nextNonJsonWhitespace() != b'}') {
-                        throw IllegalStateException("The next Token is not EndObject.")
+                        throw IllegalStateException("The next Token is not JsonStreamEndObject.")
                     }
                 } else {
                     throw IllegalStateException("Failed to end object.")
                 }
             case _ => // others
-                throw IllegalStateException("The next Token is not EndObject.")
+                throw IllegalStateException("The next Token is not JsonStreamEndObject.")
         }
 
         availLen--
@@ -270,17 +270,17 @@ public class JsonStreamReader {
             match (token) {
                 case JsonStreamNull | JsonStreamBool | JsonStreamNumber => skipValue()
                 case JsonStreamString => skipString()
-                case BeginArray => skipArray()
-                case BeginObject => skipObject()
-                case EndArray | EndObject => return
-                case Name =>
+                case JsonStreamBeginArray => skipArray()
+                case JsonStreamBeginObject => skipObject()
+                case JsonStreamEndArray | JsonStreamEndObject => return
+                case JsonStreamName =>
                     skipName()
                     if (let Some(token) <- peek()) {
                         match (token) {
                             case JsonStreamNull | JsonStreamBool | JsonStreamNumber => skipValue()
                             case JsonStreamString => skipString()
-                            case BeginArray => skipArray()
-                            case BeginObject => skipObject()
+                            case JsonStreamBeginArray => skipArray()
+                            case JsonStreamBeginObject => skipObject()
                             case _ => throw IllegalStateException("The name must be followed by JSON value.")
                         }
                     } else {

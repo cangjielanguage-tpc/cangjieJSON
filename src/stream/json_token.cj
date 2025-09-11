@@ -14,11 +14,11 @@ public enum JsonToken <: Equatable<JsonToken> & Hashable {
     | JsonStreamBool
     | JsonStreamNumber
     | JsonStreamString
-    | BeginArray
-    | EndArray
-    | BeginObject
-    | EndObject
-    | Name
+    | JsonStreamBeginArray
+    | JsonStreamEndArray
+    | JsonStreamBeginObject
+    | JsonStreamEndObject
+    | JsonStreamName
 
     public operator func ==(that: JsonToken): Bool {
         return this.hashCode() == that.hashCode()
@@ -34,11 +34,11 @@ public enum JsonToken <: Equatable<JsonToken> & Hashable {
             case JsonStreamBool => 1
             case JsonStreamNumber => 2
             case JsonStreamString => 3
-            case BeginArray => 4
-            case EndArray => 5
-            case BeginObject => 6
-            case EndObject => 7
-            case Name => 8
+            case JsonStreamBeginArray => 4
+            case JsonStreamEndArray => 5
+            case JsonStreamBeginObject => 6
+            case JsonStreamEndObject => 7
+            case JsonStreamName => 8
         }
     }
 }
@@ -55,8 +55,8 @@ const PEEK_STATE_OBJECT_END = 8
 const PEEK_STATE_NAME = 9 // next token must be a name, which type is string
 const PEEK_STATE_VALUE = 10 // next token must be a value, can not be a endArray\endobject\name
 const PEEK_STATE_NONE = 11
-let PEEKSTATE2TOKEN: Array<JsonToken> = [JsonStreamNull, JsonStreamBool, JsonStreamBool, JsonStreamNumber, JsonStreamString, BeginArray, EndArray,
-    BeginObject, EndObject, Name]
+let PEEKSTATE2TOKEN: Array<JsonToken> = [JsonStreamNull, JsonStreamBool, JsonStreamBool, JsonStreamNumber, JsonStreamString, JsonStreamBeginArray, JsonStreamEndArray,
+    JsonStreamBeginObject, JsonStreamEndObject, JsonStreamName]
 
 class JsonStateStack {
     static const JSON_UNDEFINE = 0

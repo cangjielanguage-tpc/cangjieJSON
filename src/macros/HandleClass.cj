@@ -521,7 +521,7 @@ class HandleClass {
                 var obj = $className()
                 r.startObject()
                 while (let Some(v) <- r.peek()) {
-                    if(v != EndObject) {
+                    if(v != JsonStreamEndObject) {
                         let readfiledName = r.readName()
                         match (readfiledName) {
                             $funcBody

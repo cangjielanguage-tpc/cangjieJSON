@@ -2,7 +2,6 @@ package cjjson.test
 
 import std.unittest.*
 import std.unittest.testmacro.*
-
 import cjjson.*
 import cjjson.macros.*
 import std.collection.*
@@ -31,7 +30,6 @@ func JsonIgnoreNull_UseNullValue() {
     let expectOutput = #"{"a":1,"c":"ccc","d":[4,5,6]}"#
     @Assert(IgnoreNullClass.fromStreamJson(input).toStreamJson(), expectOutput)
     @Assert(IgnoreNullClass.fromJson(input).toJson(), expectOutput)
-    
 }
 
 @Test

@@ -45,6 +45,7 @@ public class BasicClass {
     // 支持 AnyType 类型（对应任意的JSON值）
     public var any: Any = ""
     public var OpAny: Option<Any> = Some(0)
+    public var OpAny2: Option<Any> = Some(0.1)
     public var hashMapAny: HashMap<String, Any> = HashMap()
     public var arrayAny: Array<Any> = Array()
 }
@@ -100,6 +101,7 @@ class BasicClassTest {
                     }
                 },
                 "OpAny" : 100,
+                "OpAny2" : 100.1,
                 "hashMapAny": {
                     "key1": "value1",
                     "key2": 100.02
@@ -145,16 +147,18 @@ class BasicClassTest {
         @Assert(b.hashMap.get("key1").getOrThrow(), "value1")
         @Assert(b.hashMap.get("key2").getOrThrow(), "value2")
         var bany = b.any as HashMap<String, Any> ?? throw Exception("any is not HashMap<String, Any>")
-         var opany = b.OpAny.getOrThrow()  as Int64 ?? throw Exception("OpAny is not Int64")
-         @Assert(opany, 100)
-         @Assert(b.hashMapAny.size, 2)
+        var opany = b.OpAny.getOrThrow() as Int64 ?? throw Exception("OpAny is not Int64")
+        @Assert(opany, 100)
+        var opany2 = b.OpAny2.getOrThrow() as Float64 ?? throw Exception("OpAny is not Float64")
+        @Assert(opany2, 100.1)
+        @Assert(b.hashMapAny.size, 2)
 
-         var aa1 = b.arrayAny[0] as  String ??  throw Exception("any is not String")
-         @Assert(aa1, "apple")
-         var aa2 = b.arrayAny[1] as  Bool ??  throw Exception("any is not Bool")
-         @Assert(aa2, false)
-         var aa3 = b.arrayAny[2] as  Int64 ??  throw Exception("any is not Int64")
-         @Assert(aa3, 10)
+        var aa1 = b.arrayAny[0] as String ?? throw Exception("any is not String")
+        @Assert(aa1, "apple")
+        var aa2 = b.arrayAny[1] as Bool ?? throw Exception("any is not Bool")
+        @Assert(aa2, false)
+        var aa3 = b.arrayAny[2] as Int64 ?? throw Exception("any is not Int64")
+        @Assert(aa3, 10)
     }
 
     @TestCase
@@ -178,20 +182,21 @@ class BasicClassTest {
         b.arr = [10, 11, 12]
         b.arrList = ArrayList<String>(["one", "two", "three"])
         b.hashSet = HashSet([20, 21, 22, 23, 24, 25])
-        b.hashMap = HashMap([
-            ("key1", "value1"),
-            ("key2", "value2"),
-            ("key3", "value3")
-        ])
+        b.hashMap = HashMap(
+            [
+                ("key1", "value1"),
+                ("key2", "value2"),
+                ("key3", "value3")
+            ]
+        )
 
-        b.any = HashMap<String, Any>([
-            ("key1", "value1")
-        ])
-        b.OpAny= Some(100)
-        b.hashMapAny= HashMap<String, Any>([("key1", "value1"), ("key2", 100.02)])
-        b.arrayAny =  ["apple", false, 10]
+        b.any = HashMap<String, Any>([("key1", "value1")])
+        b.OpAny = Some(100)
+        b.OpAny2 = Some(100.1)
+        b.hashMapAny = HashMap<String, Any>([("key1", "value1"), ("key2", 100.02)])
+        b.arrayAny = ["apple", false, 10]
 
-        let expectJson = #"{"i8":1,"i16":-2,"i32":3,"i64":-4,"u8":5,"u16":6,"u32":7,"u64":8,"f16":16.5,"f32":32.25,"f64":64.125,"b":true,"str":"Hello, Cangjie!","optNone":null,"optSome":9,"arr":[10,11,12],"arrList":["one","two","three"],"hashSet":[20,21,22,23,24,25],"hashMap":{"key1":"value1","key2":"value2","key3":"value3"},"any":{"key1":"value1"},"OpAny":100,"hashMapAny":{"key1":"value1","key2":100.02},"arrayAny":["apple",false,10]}"#
+        let expectJson = #"{"i8":1,"i16":-2,"i32":3,"i64":-4,"u8":5,"u16":6,"u32":7,"u64":8,"f16":16.5,"f32":32.25,"f64":64.125,"b":true,"str":"Hello, Cangjie!","optNone":null,"optSome":9,"arr":[10,11,12],"arrList":["one","two","three"],"hashSet":[20,21,22,23,24,25],"hashMap":{"key1":"value1","key2":"value2","key3":"value3"},"any":{"key1":"value1"},"OpAny":100,"OpAny2":100.1,"hashMapAny":{"key1":"value1","key2":100.02},"arrayAny":["apple",false,10]}"#
         println(b.toStreamJson())
         @Assert(b.toStreamJson(), expectJson)
     }

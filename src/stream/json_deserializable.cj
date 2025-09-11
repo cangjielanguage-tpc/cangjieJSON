@@ -194,7 +194,7 @@ extend<T> ArrayList<T> <: JsonStreamDeserializable<ArrayList<T>> where T <: Json
         let result = ArrayList<T>()
         r.startArray()
         while (let Some(v) <- r.peek()) {
-            if (v != EndArray) {
+            if (v != JsonStreamEndArray) {
                 result.add(T.fromJson(r))
                 r.afterRead()
             } else {
@@ -211,7 +211,7 @@ extend<T> HashSet<T> <: JsonStreamDeserializable<HashSet<T>>  where T <: JsonStr
         let result = HashSet<T>()
         r.startArray()
         while (let Some(v) <- r.peek()) {
-            if (v != EndArray) {
+            if (v != JsonStreamEndArray) {
                 result.add(T.fromJson(r))
                 r.afterRead()
             } else {
@@ -231,7 +231,7 @@ extend<K, V> HashMap<K, V> <: JsonStreamDeserializable<HashMap<K, V>> where K <:
         var key: K
         var value: V
         while (let Some(v) <- r.peek()) {
-            if (v != EndObject) {
+            if (v != JsonStreamEndObject) {
                 key = (r.readName() as K).getOrThrow()
                 value = V.fromJson(r)
                 r.afterRead()
