@@ -35,7 +35,7 @@ func JsonIgnoreNull_UseNullValue() {
 @Test
 func JsonIgnoreNull_MissValue() {
     let input = #"{"a":1}"#
-    let expectOutput = #"{"a":1, "b":0,"c":""}"#
+    let expectOutput = #"{"a":1,"b":0,"c":""}"#
     @Assert(IgnoreNullClass.fromStreamJson(input).toStreamJson(), expectOutput)
     @Assert(IgnoreNullClass.fromJson(input).toJson(), expectOutput)
 }
