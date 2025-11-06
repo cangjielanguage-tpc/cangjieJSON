@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 package cjjson.test
 
 import std.unittest.*
@@ -16,7 +19,9 @@ public class ClassWithPrivateField {
     }
 
     public prop msg: String {
-        get() { return message }
+        get() {
+            return message
+        }
     }
 }
 
@@ -30,7 +35,9 @@ public struct StructWithPrivateField {
     }
 
     public prop msg: String {
-        get() { return message }
+        get() {
+            return message
+        }
     }
 }
 

@@ -1,9 +1,11 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 package cjjson.test
 
 import cjjson.*
 import cjjson.macros.*
 import std.collection.*
-
 import std.unittest.*
 import std.unittest.testmacro.*
 
@@ -19,7 +21,6 @@ public struct AllowNullStruct {
     public var a: String = "default"
     public var b: String = "default"
     public var c: String = ""
-
 }
 
 @Test
@@ -39,6 +40,6 @@ class AllowNullTest {
         let obj = AllowNullStruct.fromJson(input)
         @Assert(obj.a, "default")
         @Assert(obj.b, "default")
-         @Assert(obj.c, "ccc")
+        @Assert(obj.c, "ccc")
     }
 }

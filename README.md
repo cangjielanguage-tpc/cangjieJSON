@@ -1,3 +1,23 @@
+<div align="center">
+<h1>cangjieJSON</h1>
+</div>
+
+<p align="center">
+<img alt="" src="https://img.shields.io/badge/release-v1.0.0-brightgreen" style="display: inline-block;" />
+<img alt="" src="https://img.shields.io/badge/build-pass-brightgreen" style="display: inline-block;" />
+<img alt="" src="https://img.shields.io/badge/cjc-v1.0.3-brightgreen" style="display: inline-block;" />
+<img alt="" src="https://img.shields.io/badge/cjcov-91.18%25-brightgreen" style="display: inline-block;" />
+<img alt="" src="https://img.shields.io/badge/project-open-brightgreen" style="display: inline-block;" />
+</p>
+
+
+## 介绍
+
+cangjieJSON是一个将仓颉对象和json字符串之间序列化和反序列化的库
+
+
+### 特性
+
 # Cangjie JSON 序列化与反序列化库
 
 通过提供以下宏，来简化仓颉代码中 JSON 序列化和反序列化的开发：
@@ -17,6 +37,27 @@
 - `IJsonValueExtend` 接口：为 `JsonValue` 类型提供了一些扩展，更方便地访问 json 对象。
 
 > 备注：版本变更请点击[此处](./CHANGELOG.md)查看。
+
+
+### 源码目录
+
+```shell
+├── doc                                       #文档目录
+│   └── feature_api.md                        #API接口文档
+├── src                                       #源码目录 
+│    └── test                                 #测试用例目录
+├── CHANGELOG                                 #CHANGELOG文件
+├── cjpm.toml                                 #项目配置文件
+├── LICENSE                                   #LICENSE文件
+└── README.md                                 #整体介绍
+```
+
+### 接口说明
+
+主要类和函数接口说明详见 [API](./doc/feature_api.md)
+
+
+## 使用说明
 
 ## 1. 使用限制
 
@@ -110,9 +151,10 @@ let obj = Basic.fromJson(input)  // JSON 字符串反序列化为 Basic 对象
 let jsonString: String = obj.toJson() // Basic 对象序列化为 JSON 字符串
 ```
 
-> 更多详细示例请查阅 `src/test` 目录。
+> 更多详细示例请查阅 `src/test` 目录。## 1. 使用限制
 
-## 3. 接口详细介绍：
+
+### 功能示例
 
 ### 3.1 `@JsonAdapter` 宏
 
@@ -466,7 +508,7 @@ public class AnyType <: IJsonAdapter<AnyType> {
 
 具体使用示例可参考[单元测试用例源码](./src/test/AnyType_test.cj)
 
-### 3.6 JsonValue 扩展
+### 3.7 JsonValue 扩展
 
 为了更加方便的使用 JsonValue 类型，为其扩展了如下接口：
 
@@ -502,3 +544,15 @@ public interface IJsonValueExtend {
     func getJsonValue(key: String, default!: JsonValue, onException!: (Exception) -> Unit): JsonValue
 }
 ```
+
+## 约束与限制
+
+Cangjie Compiler: 1.0.3
+
+## 开源协议
+
+本项目基于 [Apache-2.0 License](./LICENSE)，请自由的享受和参与开源。
+
+## 参与贡献
+
+欢迎给我们提交PR，欢迎给我们提交Issue，欢迎参与任何形式的贡献。

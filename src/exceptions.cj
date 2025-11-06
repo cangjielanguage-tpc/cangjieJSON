@@ -1,10 +1,12 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 package cjjson
 
 // 类型不匹配的异常
 public class JsonTypeMismatch <: Exception {
     public init(expectType: String, actualType: String) {
         super("type mismatch: expect '${expectType}', found '${actualType}'")
-
     }
     public init(className: String, fieldName: String, message: String) {
         super("'${className}.${fieldName}' ${message}")

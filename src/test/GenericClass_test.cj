@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 package cjjson.test
 
 import std.unittest.*
@@ -12,7 +15,7 @@ public open class GenericParent<T> {
 }
 
 // 泛型子类，继承了泛型父类
-@JsonAdapter[withSuperClass = GenericParent<T>; withGenericType = T]
+@JsonAdapter[withSuperClass = GenericParent<T> ; withGenericType = T]
 public class GenericChild<T> <: GenericParent<T> {
     public var childData: ?T = None
 }

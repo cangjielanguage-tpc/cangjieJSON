@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 package cjjson.test
 
 import std.unittest.*
@@ -66,10 +69,8 @@ class NestedClassTest {
         let ns = NestedSimple()
         ns.data = Simple(1, "hello")
         ns.optData = Simple(2, "cangjie")
-        ns.array = [ Simple(3, "333"), Simple(4, "444") ]
-        ns.map = HashMap([
-            ("key1", Simple(5, "555"))
-        ])
+        ns.array = [Simple(3, "333"), Simple(4, "444")]
+        ns.map = HashMap([("key1", Simple(5, "555"))])
         let expectJson = #"{"data":{"code":1,"message":"hello"},"optData":{"code":2,"message":"cangjie"},"array":[{"code":3,"message":"333"},{"code":4,"message":"444"}],"map":{"key1":{"code":5,"message":"555"}}}"#
         @Assert(ns.toJson(), expectJson)
     }

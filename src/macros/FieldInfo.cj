@@ -1,7 +1,9 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 macro package cjjson.macros
 
 import std.ast.*
-import std.collection.*
 
 class FieldInfo {
     public let vd: VarDecl
@@ -28,12 +30,11 @@ class FieldInfo {
                 typeNode = vd.declType
             } catch (e: ASTException) {
                 diagReport(DiagReportLevel.ERROR, vd.identifier.toTokens(),
-                    "filed without @JsonIgnore must explicitly declare its type",
-                    "must explicitly declare its type")
+                    "filed without @JsonIgnore must explicitly declare its type", "must explicitly declare its type")
             }
         }
 
-        for(mod in vd.modifiers) {
+        for (mod in vd.modifiers) {
             match (mod.toTokens().toString()) {
                 case "private" => isPrivate = true
                 case "static" => isStatic = true
