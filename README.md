@@ -57,6 +57,13 @@ cangjieJSON是一个将仓颉对象和json字符串之间序列化和反序列�
 主要类和函数接口说明详见 [API](./doc/feature_api.md)
 
 
+### 编译构建
+
+1. 使用包管理器编译
+    1. 该三方库依赖stdx，请参考[stdx](https://gitcode.com/Cangjie/Cangjie-STDX#%E4%BD%BF%E7%94%A8%E6%8C%87%E5%AF%BC)文档配置`CANGJIE_STDX_PATH`路径
+    2. cjpm build
+
+
 ## 使用说明
 
 ## 1. 使用限制

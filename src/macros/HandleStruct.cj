@@ -32,7 +32,6 @@ class HandleStruct {
         while (offset < attr.size) {
             try {
                 let (expr, off) = parseExprFragment(attr, startFrom: offset)
-                // expr.dump()
                 match (expr) {
                     case ae: AssignExpr =>
                         let key = ae.leftExpr.toTokens().toString()
@@ -109,7 +108,7 @@ class HandleStruct {
         if (gcList.size == 0) {
             this.sd.genericConstraint.add(gc)
         } else {
-            var hasAdd = false
+            var hasAddStruct = false
             for (item in gcList) {
                 let ta = item.typeArgument
                 if (ta.toTokens().toString() == genericType.toString()) {
@@ -117,19 +116,19 @@ class HandleStruct {
                         match (value) {
                             case rt: RefType =>
                                 if (rt.identifier.toTokens().toString() == "IJsonAdapter") {
-                                    hasAdd = true
+                                    hasAddStruct = true
                                     break
                                 }
                             case _ => ()
                         }
                     }
-                    if (!hasAdd) {
+                    if (!hasAddStruct) {
                         item.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
-                        hasAdd = true
+                        hasAddStruct = true
                     }
                 }
             }
-            if (!hasAdd) {
+            if (!hasAddStruct) {
                 this.sd.genericConstraint.add(gc)
             }
         }
@@ -152,29 +151,29 @@ class HandleStruct {
     private func fromJsonValueFunc(): FuncDecl {
         var funcBody = Tokens()
 
-        for (field in allFields) {
-            if (field.isIgnore) {
+        for (fieldStructTemp1 in allFields) {
+            if (fieldStructTemp1.isIgnore) {
                 continue
             }
-            let identifier = field.vd.identifier
-            let jsonName = field.getJsonName()
-            let typeInfo = field.vd.declType
+            let identifierStructTemp1 = fieldStructTemp1.vd.identifier
+            let jsonNameStructTemp1 = fieldStructTemp1.getJsonName()
+            let typeInfoStructTemp1 = fieldStructTemp1.vd.declType
 
-            let assignExpr = if (isOptionType(typeInfo)) {
-                let baseType = getOptionBaseType(typeInfo)
+            let assignExpr = if (isOptionType(typeInfoStructTemp1)) {
+                let baseType = getOptionBaseType(typeInfoStructTemp1)
                 quote(
-                    obj.$identifier = Option<$baseType>.fromJsonValue(jsonObj.get($jsonName) ?? JsonNull())
+                    obj.$identifierStructTemp1 = Option<$baseType>.fromJsonValue(jsonObj.get($jsonNameStructTemp1) ?? JsonNull())
                 )
             } else {
                 quote(
-                    obj.$identifier = $typeInfo.fromJsonValue(jsonObj.get($jsonName).getOrThrow({=> JsonFieldNotExist($(this.structName.toString()), $jsonName)}))
+                    obj.$identifierStructTemp1 = $typeInfoStructTemp1.fromJsonValue(jsonObj.get($jsonNameStructTemp1).getOrThrow({=> JsonFieldNotExist($(this.structName.toString()), $jsonNameStructTemp1)}))
                 )
             }
 
-            let expr = if (this.allowNull || field.useDefault) {
+            let exprStructTemp1 = if (this.allowNull || fieldStructTemp1.useDefault) {
                 // 如果该 class 标记了 allowNull，或者该成员标记了 @JsonDefault，则仅当 json 字符串中包含该字段时，才对成员变量进行解析赋值，否则保持默认值。
                 quote(
-                    if (jsonObj.containsKey($jsonName)  && jsonObj.get($jsonName).getOrThrow().toString() != "null") {
+                    if (jsonObj.containsKey($jsonNameStructTemp1)  && jsonObj.get($jsonNameStructTemp1).getOrThrow().toString() != "null") {
                         $assignExpr
                     }
                 )
@@ -183,12 +182,12 @@ class HandleStruct {
                     try {
                         $assignExpr
                     } catch (e: JsonTypeMismatch) {
-                        throw JsonTypeMismatch($(this.structName.toString()), $jsonName, e.message)
+                        throw JsonTypeMismatch($(this.structName.toString()), $jsonNameStructTemp1, e.message)
                     }
                 )
             }
 
-            funcBody.append(expr)
+            funcBody.append(exprStructTemp1)
         }
 
         return FuncDecl(
@@ -219,22 +218,22 @@ class HandleStruct {
     private func toJsonValueFunc(): FuncDecl {
         var funcBody = Tokens()
 
-        for (field in allFields) {
-            if (field.isIgnore) {
+        for (fieldStructTemp in allFields) {
+            if (fieldStructTemp.isIgnore) {
                 continue
             }
-            let jsonName = field.getJsonName()
-            if (field.isIgnoreNull && isOptionType(field.vd.declType)) {
+            let jsonNameStructTemp = fieldStructTemp.getJsonName()
+            if (fieldStructTemp.isIgnoreNull && isOptionType(fieldStructTemp.vd.declType)) {
                 funcBody.append(
                     quote(
-                    if (let Some(v) <- $(field.vd.identifier)) {
-                        jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
+                    if (let Some(v) <- $(fieldStructTemp.vd.identifier)) {
+                        jsonObj.put($(jsonNameStructTemp), $(fieldStructTemp.vd.identifier).toJsonValue())
                     }
                 ))
             } else {
                 funcBody.append(
                     quote(
-                    jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
+                    jsonObj.put($(jsonNameStructTemp), $(fieldStructTemp.vd.identifier).toJsonValue())
                 ))
             }
         }
