@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 macro package cjjson.macros
 
 import std.ast.*
@@ -14,7 +17,7 @@ class HandleClass {
     private var genericType: Tokens = Tokens()
     private var allowNull: Bool = false
 
-    private var isOpen: Bool = false    // 表示是否是一个 open 的 class
+    private var isOpen: Bool = false // 表示是否是一个 open 的 class
 
     public init(cd: ClassDecl) {
         this.cd = cd
@@ -43,7 +46,7 @@ class HandleClass {
             }
         }
         if (!hasAdded) {
-            cd.superTypes.append(refType)
+            cd.superTypes.add(refType)
         }
     }
 
@@ -95,7 +98,8 @@ class HandleClass {
             funcBody.append(expr)
         }
 
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public static func fromJsonValue(jsonValue: JsonValue): $className {
                 let jsonObj = match (jsonValue) {
                     case obj: JsonObject => obj
@@ -111,7 +115,8 @@ class HandleClass {
     }
 
     private func fromJsonFunc(): FuncDecl {
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public static func fromJson(str: String): $className {
                 return fromJsonValue(JsonValue.fromStr(str))
             }
@@ -133,13 +138,15 @@ class HandleClass {
             }
             let jsonName = field.getJsonName()
             if (field.isIgnoreNull && isOptionType(field.vd.declType)) {
-                funcBody.append(quote(
+                funcBody.append(
+                    quote(
                     if (let Some(v) <- $(field.vd.identifier)) {
                         jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
                     }
                 ))
             } else {
-                funcBody.append(quote(
+                funcBody.append(
+                    quote(
                     jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
                 ))
             }
@@ -151,7 +158,8 @@ class HandleClass {
             quote()
         }
 
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public $openModifier func toJsonValue(): JsonValue {
                 let jsonObj = JsonObject()
                 $funcBody
@@ -168,7 +176,8 @@ class HandleClass {
             quote()
         }
 
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public $openModifier func toJson(): String {
                 return toJsonValue().toString()
             }
@@ -223,7 +232,8 @@ class HandleClass {
             funcBody.append(expr)
         }
 
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public static func fromJsonValueInherit(jsonValue: JsonValue, obj: $className): Unit {
                 let jsonObj = jsonValue.asObject()
                 $funcBody
@@ -246,13 +256,15 @@ class HandleClass {
             }
             let jsonName = field.getJsonName()
             if (field.isIgnoreNull && isOptionType(field.vd.declType)) {
-                funcBody.append(quote(
+                funcBody.append(
+                    quote(
                     if (let Some(v) <- $(field.vd.identifier)) {
                         jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
                     }
                 ))
             } else {
-                funcBody.append(quote(
+                funcBody.append(
+                    quote(
                     jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
                 ))
             }
@@ -264,7 +276,8 @@ class HandleClass {
             quote()
         }
 
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public $openModifier func toJsonValueInherit(jsonValue: JsonValue): Unit {
                 let jsonObj = jsonValue.asObject()
                 $funcBody
@@ -289,16 +302,15 @@ class HandleClass {
                             this.superClass = value.toTokens()
                         } else if (key == JsonAdapterClassAttr.WITH_GENERIC_TYPE) {
                             if (value.toTokens().size != 1) {
-                                diagReport(DiagReportLevel.ERROR, value.toTokens(),
-                                    "only one generic type is allowed",
+                                diagReport(DiagReportLevel.ERROR, value.toTokens(), "only one generic type is allowed",
                                     "only one generic type is allowed")
                             }
                             this.withGenericType = true
                             this.genericType = value.toTokens()
                         } else {
                             diagReport(DiagReportLevel.ERROR, ae.toTokens(),
-                            "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}",
-                            "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}")
+                                "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}",
+                                "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}")
                         }
                     case re: RefExpr =>
                         let key = re.identifier.value
@@ -306,13 +318,12 @@ class HandleClass {
                             this.allowNull = true
                         } else {
                             diagReport(DiagReportLevel.ERROR, re.toTokens(),
-                            "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}",
-                            "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}")
+                                "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}",
+                                "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}")
                         }
-                    case _ =>
-                        diagReport(DiagReportLevel.ERROR, expr.toTokens(),
-                            "expect AssignExpr, and key should be one of ${JsonAdapterClassAttr.availableAttrs()}",
-                            "expect AssignExpr, and key should be one of ${JsonAdapterClassAttr.availableAttrs()}")
+                    case _ => diagReport(DiagReportLevel.ERROR, expr.toTokens(),
+                        "expect AssignExpr, and key should be one of ${JsonAdapterClassAttr.availableAttrs()}",
+                        "expect AssignExpr, and key should be one of ${JsonAdapterClassAttr.availableAttrs()}")
                 }
                 offset = off
             } catch (e: ParseASTException) {
@@ -339,8 +350,7 @@ class HandleClass {
 
         let gpTokens = this.cd.genericParam.parameters.toTokens()
         if (gpTokens.size != 1) {
-            diagReport(DiagReportLevel.ERROR, gpTokens,
-                "can only have one generic param",
+            diagReport(DiagReportLevel.ERROR, gpTokens, "can only have one generic param",
                 "can only have one generic param")
             return
         }
@@ -357,17 +367,17 @@ class HandleClass {
         let gc = GenericConstraint()
         gc.keyword = Token(TokenKind.WHERE)
         gc.typeArgument = RefType(genericType)
-        gc.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+        gc.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
 
         if (gcList.size == 0) {
-            this.cd.genericConstraint.append(gc)
+            this.cd.genericConstraint.add(gc)
         } else {
             var hasAdd = false
             for (item in gcList) {
                 let ta = item.typeArgument
                 if (ta.toTokens().toString() == genericType.toString()) {
                     for (value in item.upperBounds) {
-                        match(value) {
+                        match (value) {
                             case rt: RefType =>
                                 if (rt.identifier.toTokens().toString() == "IJsonAdapter") {
                                     hasAdd = true
@@ -377,13 +387,13 @@ class HandleClass {
                         }
                     }
                     if (!hasAdd) {
-                        item.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+                        item.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
                         hasAdd = true
                     }
                 }
             }
             if (!hasAdd) {
-                this.cd.genericConstraint.append(gc)
+                this.cd.genericConstraint.add(gc)
             }
         }
     }
@@ -401,24 +411,23 @@ class HandleClass {
                 case vd: VarDecl =>
                     let field = FieldInfo(vd)
                     if (field.isStatic && !field.isIgnore) {
-                        diagReport(DiagReportLevel.ERROR, vd.toTokens(),
-                            "`static` member variable must use @JsonIgnore",
+                        diagReport(DiagReportLevel.ERROR, vd.toTokens(), "`static` member variable must use @JsonIgnore",
                             "must use @JsonIgnore")
                     }
-                    this.allFields.append(field)
+                    this.allFields.add(field)
                 case _ => ()
             }
         }
 
-        cd.body.decls.append(fromJsonFunc())
-        cd.body.decls.append(toJsonFunc())
-        cd.body.decls.append(fromJsonValueFunc())
-        cd.body.decls.append(toJsonValueFunc())
+        cd.body.decls.add(fromJsonFunc())
+        cd.body.decls.add(toJsonFunc())
+        cd.body.decls.add(fromJsonValueFunc())
+        cd.body.decls.add(toJsonValueFunc())
 
         // 只有在有可能被继承的情况下，才需要生成这2个方法，用于子类调用父类的对应方法。
         if (this.isOpen) {
-            cd.body.decls.append(fromJsonValueInheritFunc())
-            cd.body.decls.append(toJsonValueInheritFunc())
+            cd.body.decls.add(fromJsonValueInheritFunc())
+            cd.body.decls.add(toJsonValueInheritFunc())
         }
 
         return cd.toTokens()

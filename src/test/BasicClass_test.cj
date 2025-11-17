@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 package cjjson.test
 
 import std.unittest.*
@@ -163,11 +166,13 @@ class BasicClassTest {
         b.arr = [10, 11, 12]
         b.arrList = ArrayList<String>(["one", "two", "three"])
         b.hashSet = HashSet([20, 21, 22, 23, 24, 25])
-        b.hashMap = HashMap([
-            ("key1", "value1"),
-            ("key2", "value2"),
-            ("key3", "value3")
-        ])
+        b.hashMap = HashMap(
+            [
+                ("key1", "value1"),
+                ("key2", "value2"),
+                ("key3", "value3")
+            ]
+        )
         let anyObj = JsonObject()
         anyObj.put("data", JsonArray([JsonInt(100), JsonString("success"), JsonBool(true)]))
         anyObj.put("error", JsonString("succeed"))

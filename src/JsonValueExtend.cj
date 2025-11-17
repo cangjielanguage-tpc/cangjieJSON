@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 package cjjson
 
 // 扩展JsonKind
@@ -24,11 +27,11 @@ extend JsonKind <: IJsonKindExtend {
     // 操作符重载，支持JsonKind判等
     public operator func ==(right: JsonKind): Bool {
         match ((this, right)) {
-            case (JsonKind.JsArray,  JsonKind.JsArray) => return true
-            case (JsonKind.JsBool ,  JsonKind.JsBool) => return true
-            case (JsonKind.JsFloat,  JsonKind.JsFloat) => return true
-            case (JsonKind.JsInt ,   JsonKind.JsInt) => return true
-            case (JsonKind.JsNull,   JsonKind.JsNull) => return true
+            case (JsonKind.JsArray, JsonKind.JsArray) => return true
+            case (JsonKind.JsBool, JsonKind.JsBool) => return true
+            case (JsonKind.JsFloat, JsonKind.JsFloat) => return true
+            case (JsonKind.JsInt, JsonKind.JsInt) => return true
+            case (JsonKind.JsNull, JsonKind.JsNull) => return true
             case (JsonKind.JsObject, JsonKind.JsObject) => return true
             case (JsonKind.JsString, JsonKind.JsString) => return true
             case _ => return false
@@ -72,7 +75,7 @@ public interface IJsonValueExtend {
     func getJsonValue(key: String, default!: JsonValue, onException!: (Exception) -> Unit): JsonValue
 }
 
-let emptyHandler = { _: Exception => }
+let emptyHandler = {_: Exception =>}
 
 extend JsonValue <: IJsonValueExtend {
     // 判断是否是 JSON Bool 类型
@@ -257,7 +260,7 @@ extend JsonValue <: IJsonValueExtend {
     public func getBoolValue(key: String, default!: Bool = false, onException!: (Exception) -> Unit = emptyHandler): Bool {
         try {
             return this.asObject().get(key)?.asBool().getValue() ?? default
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             onException(e)
         }
         return default
@@ -275,7 +278,7 @@ extend JsonValue <: IJsonValueExtend {
     public func getIntValue(key: String, default!: Int64 = 0, onException!: (Exception) -> Unit = emptyHandler): Int64 {
         try {
             return this.asObject().get(key)?.asInt().getValue() ?? default
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             onException(e)
         }
         return default
@@ -293,7 +296,7 @@ extend JsonValue <: IJsonValueExtend {
     public func getFloatValue(key: String, default!: Float64 = 0.0, onException!: (Exception) -> Unit = emptyHandler): Float64 {
         try {
             return this.asObject().get(key)?.asFloat().getValue() ?? default
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             onException(e)
         }
         return default
@@ -311,7 +314,7 @@ extend JsonValue <: IJsonValueExtend {
     public func getStringValue(key: String, default!: String = "", onException!: (Exception) -> Unit = emptyHandler): String {
         try {
             return this.asObject().get(key)?.asString().getValue() ?? default
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             onException(e)
         }
         return default
@@ -326,10 +329,11 @@ extend JsonValue <: IJsonValueExtend {
      * @return 健名对应的 Array<JsonValue> 值
      * @attention 如果当前对象不是 JSON Object 类型，则返回 default 值。
      */
-    public func getArrayValue(key: String, default!: Array<JsonValue> = Array(), onException!: (Exception) -> Unit = emptyHandler): Array<JsonValue> {
+    public func getArrayValue(key: String, default!: Array<JsonValue> = Array(),
+        onException!: (Exception) -> Unit = emptyHandler): Array<JsonValue> {
         try {
             return this.asObject().get(key)?.asArray().getItems().toArray() ?? default
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             onException(e)
         }
         return default
@@ -344,10 +348,11 @@ extend JsonValue <: IJsonValueExtend {
      * @return 健名对应的 JsonObject 值
      * @attention 如果当前对象不是 JSON Object 类型，则返回 default 值。
      */
-    public func getJsonObject(key: String, default!: JsonObject = JsonObject(), onException!: (Exception) -> Unit = emptyHandler): JsonObject {
+    public func getJsonObject(key: String, default!: JsonObject = JsonObject(),
+        onException!: (Exception) -> Unit = emptyHandler): JsonObject {
         try {
             return this.asObject().get(key)?.asObject() ?? default
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             onException(e)
         }
         return default
@@ -362,10 +367,11 @@ extend JsonValue <: IJsonValueExtend {
      * @return 健名对应的 JsonValue 值
      * @attention 如果当前对象不是 JSON Object 类型，则返回 default 值。
      */
-    public func getJsonValue(key: String, default!: JsonValue = JsonNull(), onException!: (Exception) -> Unit = emptyHandler): JsonValue {
+    public func getJsonValue(key: String, default!: JsonValue = JsonNull(),
+        onException!: (Exception) -> Unit = emptyHandler): JsonValue {
         try {
             return this.asObject().get(key) ?? default
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             onException(e)
         }
         return default

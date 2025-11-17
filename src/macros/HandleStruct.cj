@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 macro package cjjson.macros
 
 import std.ast.*
@@ -36,16 +39,15 @@ class HandleStruct {
                         let value = ae.rightExpr
                         if (key == JsonAdapterClassAttr.WITH_GENERIC_TYPE) {
                             if (value.toTokens().size != 1) {
-                                diagReport(DiagReportLevel.ERROR, value.toTokens(),
-                                    "only one generic type is allowed",
+                                diagReport(DiagReportLevel.ERROR, value.toTokens(), "only one generic type is allowed",
                                     "only one generic type is allowed")
                             }
                             this.withGenericType = true
                             this.genericType = value.toTokens()
                         } else {
                             diagReport(DiagReportLevel.ERROR, ae.toTokens(),
-                            "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type",
-                            "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type")
+                                "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type",
+                                "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type")
                         }
                     case re: RefExpr =>
                         let key = re.identifier.value
@@ -53,13 +55,12 @@ class HandleStruct {
                             this.allowNull = true
                         } else {
                             diagReport(DiagReportLevel.ERROR, re.toTokens(),
-                            "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}",
-                            "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}")
+                                "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}",
+                                "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}")
                         }
-                    case _ =>
-                        diagReport(DiagReportLevel.ERROR, expr.toTokens(),
-                            "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type",
-                            "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type")
+                    case _ => diagReport(DiagReportLevel.ERROR, expr.toTokens(),
+                        "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type",
+                        "only ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} is supported for struct type")
                 }
                 offset = off
             } catch (e: ParseASTException) {
@@ -86,8 +87,7 @@ class HandleStruct {
 
         let gpTokens = this.sd.genericParam.parameters.toTokens()
         if (gpTokens.size != 1) {
-            diagReport(DiagReportLevel.ERROR, gpTokens,
-                "can only have one generic param",
+            diagReport(DiagReportLevel.ERROR, gpTokens, "can only have one generic param",
                 "can only have one generic param")
             return
         }
@@ -104,17 +104,17 @@ class HandleStruct {
         let gc = GenericConstraint()
         gc.keyword = Token(TokenKind.WHERE)
         gc.typeArgument = RefType(genericType)
-        gc.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+        gc.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
 
         if (gcList.size == 0) {
-            this.sd.genericConstraint.append(gc)
+            this.sd.genericConstraint.add(gc)
         } else {
             var hasAdd = false
             for (item in gcList) {
                 let ta = item.typeArgument
                 if (ta.toTokens().toString() == genericType.toString()) {
                     for (value in item.upperBounds) {
-                        match(value) {
+                        match (value) {
                             case rt: RefType =>
                                 if (rt.identifier.toTokens().toString() == "IJsonAdapter") {
                                     hasAdd = true
@@ -124,13 +124,13 @@ class HandleStruct {
                         }
                     }
                     if (!hasAdd) {
-                        item.upperBounds.append(RefType(quote(IJsonAdapter<T>)))
+                        item.upperBounds.add(RefType(quote(IJsonAdapter<T>)))
                         hasAdd = true
                     }
                 }
             }
             if (!hasAdd) {
-                this.sd.genericConstraint.append(gc)
+                this.sd.genericConstraint.add(gc)
             }
         }
     }
@@ -145,7 +145,7 @@ class HandleStruct {
             }
         }
         if (!hasAdded) {
-            sd.superTypes.append(refType)
+            sd.superTypes.add(refType)
         }
     }
 
@@ -191,7 +191,8 @@ class HandleStruct {
             funcBody.append(expr)
         }
 
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public static func fromJsonValue(jsonValue: JsonValue): $structName {
                 let jsonObj = match (jsonValue) {
                     case obj: JsonObject => obj
@@ -207,7 +208,8 @@ class HandleStruct {
     }
 
     private func fromJsonFunc(): FuncDecl {
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public static func fromJson(str: String): $structName {
                 return fromJsonValue(JsonValue.fromStr(str))
             }
@@ -223,19 +225,22 @@ class HandleStruct {
             }
             let jsonName = field.getJsonName()
             if (field.isIgnoreNull && isOptionType(field.vd.declType)) {
-                funcBody.append(quote(
+                funcBody.append(
+                    quote(
                     if (let Some(v) <- $(field.vd.identifier)) {
                         jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
                     }
                 ))
             } else {
-                funcBody.append(quote(
+                funcBody.append(
+                    quote(
                     jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
                 ))
             }
         }
 
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public func toJsonValue(): JsonValue {
                 let jsonObj = JsonObject()
                 $funcBody
@@ -246,7 +251,8 @@ class HandleStruct {
     }
 
     private func toJsonFunc(): FuncDecl {
-        return FuncDecl(quote(
+        return FuncDecl(
+            quote(
             public func toJson(): String {
                 return toJsonValue().toString()
             }
@@ -264,19 +270,18 @@ class HandleStruct {
                 case vd: VarDecl =>
                     let field = FieldInfo(vd)
                     if (field.isStatic && !field.isIgnore) {
-                        diagReport(DiagReportLevel.ERROR, vd.toTokens(),
-                            "`static` member variable must use @JsonIgnore",
+                        diagReport(DiagReportLevel.ERROR, vd.toTokens(), "`static` member variable must use @JsonIgnore",
                             "must use @JsonIgnore")
                     }
-                    this.allFields.append(field)
+                    this.allFields.add(field)
                 case _ => ()
             }
         }
 
-        sd.body.decls.append(fromJsonFunc())
-        sd.body.decls.append(toJsonFunc())
-        sd.body.decls.append(fromJsonValueFunc())
-        sd.body.decls.append(toJsonValueFunc())
+        sd.body.decls.add(fromJsonFunc())
+        sd.body.decls.add(toJsonFunc())
+        sd.body.decls.add(fromJsonValueFunc())
+        sd.body.decls.add(toJsonValueFunc())
 
         return sd.toTokens()
     }

@@ -1,8 +1,10 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 package cjjson.test
 
 import std.unittest.*
 import std.unittest.testmacro.*
-
 import cjjson.*
 import cjjson.macros.*
 import std.collection.*
@@ -12,7 +14,7 @@ public class IgnoreClass {
     @JsonIgnore
     public var a: String = ""
     @JsonIgnore
-    public var b = ArrayList<Int64>()
+    public var b: ArrayList<Int64> = ArrayList<Int64>()
 
     public var c: Int64 = 0
 }
@@ -22,7 +24,7 @@ public struct IgnoreStruct {
     @JsonIgnore
     public var a: String = ""
     @JsonIgnore
-    public var b = ArrayList<Int64>()
+    public var b: ArrayList<Int64> = ArrayList<Int64>()
 
     public var c: Int64 = 0
 }

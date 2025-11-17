@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
 package cjjson.test
 
 import std.unittest.*
@@ -18,7 +21,7 @@ public class ChildNotMarkParent <: Parent {
 }
 
 // 子类存在父类，且使用了 withSuperClass 属性，则父类中的成员变量会被序列化和反序列化
-@JsonAdapter[withSuperClass=Parent]
+@JsonAdapter[withSuperClass = Parent]
 public class ChildMarkParent <: Parent {
     public var b: String = ""
 }
