@@ -3,7 +3,7 @@
  */
 package cjjson
 
-public import stdx.encoding.json.*
+internal import stdx.encoding.json.*
 
 public interface IJsonAdapter<T> {
     static func fromJson(str: String): T {
