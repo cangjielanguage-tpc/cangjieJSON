@@ -3,9 +3,9 @@
 </div>
 
 <p align="center">
-<img alt="" src="https://img.shields.io/badge/release-v1.0.0-brightgreen" style="display: inline-block;" />
+<img alt="" src="https://img.shields.io/badge/release-v1.1.1-brightgreen" style="display: inline-block;" />
 <img alt="" src="https://img.shields.io/badge/build-pass-brightgreen" style="display: inline-block;" />
-<img alt="" src="https://img.shields.io/badge/cjc-v1.0.3-brightgreen" style="display: inline-block;" />
+<img alt="" src="https://img.shields.io/badge/cjc-v1.2.0-brightgreen" style="display: inline-block;" />
 <img alt="" src="https://img.shields.io/badge/cjcov-91.18%25-brightgreen" style="display: inline-block;" />
 <img alt="" src="https://img.shields.io/badge/project-open-brightgreen" style="display: inline-block;" />
 </p>
@@ -55,6 +55,13 @@ cangjieJSON是一个将仓颉对象和json字符串之间序列化和反序列�
 ### 接口说明
 
 主要类和函数接口说明详见 [API](./doc/feature_api.md)
+
+
+### 编译构建
+
+1. 使用包管理器编译
+    1. 该三方库依赖stdx，请参考[stdx](https://gitcode.com/Cangjie/Cangjie-STDX#%E4%BD%BF%E7%94%A8%E6%8C%87%E5%AF%BC)文档配置`CANGJIE_STDX_PATH`路径
+    2. cjpm build
 
 
 ## 使用说明
@@ -547,7 +554,18 @@ public interface IJsonValueExtend {
 
 ## 约束与限制
 
-Cangjie Compiler: 1.0.3
+ 在下述版本验证通过： 
+
+| 编号 | 依赖构建工具                                 | 版本号    |
+| ---- | -------------------------------------------- | --------- |
+| 1    | **cjc**                                      | v1.2.0    |
+
+  CangjieJson依赖三方库：
+  
+  | 编号 | 依赖三方库         | 版本号      |
+  |----|---------------|----------|
+  | 1  | stdx          | v1.2.0.1 |
+
 
 ## 开源协议
 
