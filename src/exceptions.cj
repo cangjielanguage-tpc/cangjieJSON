@@ -1,6 +1,3 @@
-/*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
- */
 package cjjson
 
 // 类型不匹配的异常

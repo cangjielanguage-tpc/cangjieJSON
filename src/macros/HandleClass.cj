@@ -1,6 +1,3 @@
-/*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
- */
 macro package cjjson.macros
 
 import std.ast.*
@@ -59,38 +56,38 @@ class HandleClass {
             ))
         }
 
-        for (field in allFields) {
-            if (field.isIgnore) {
+        for (fieldSingle in allFields) {
+            if (fieldSingle.isIgnore) {
                 continue
             }
-            let identifier = field.vd.identifier
-            let jsonName = field.getJsonName()
-            let typeInfo = field.vd.declType
+            let identifierTemp = fieldSingle.vd.identifier
+            let jsonNameTemp = fieldSingle.getJsonName()
+            let typeInfoTemp = fieldSingle.vd.declType
 
-            let assignExpr = if (isOptionType(typeInfo)) {
-                let baseType = getOptionBaseType(typeInfo)
+            let assignExprTemp = if (isOptionType(typeInfoTemp)) {
+                let baseTypeTemp = getOptionBaseType(typeInfoTemp)
                 quote(
-                    obj.$identifier = Option<$baseType>.fromJsonValue(jsonObj.get($jsonName) ?? JsonNull())
+                    obj.$identifierTemp = Option<$baseTypeTemp>.fromJsonValue(jsonObj.get($jsonNameTemp) ?? JsonNull())
                 )
             } else {
                 quote(
-                    obj.$identifier = $typeInfo.fromJsonValue(jsonObj.get($jsonName).getOrThrow({=> JsonFieldNotExist($(this.className.toString()), $jsonName)}))
+                    obj.$identifierTemp = $typeInfoTemp.fromJsonValue(jsonObj.get($jsonNameTemp).getOrThrow({=> JsonFieldNotExist($(this.className.toString()), $jsonNameTemp)}))
                 )
             }
 
-            let expr = if (this.allowNull || field.useDefault) {
+            let expr = if (this.allowNull || fieldSingle.useDefault) {
                 // 如果该 class 标记了 allowNull，或者该成员标记了 @JsonDefault，则仅当 json 字符串中包含该字段时，才对成员变量进行解析赋值，否则保持默认值。
                 quote(
-                    if (jsonObj.containsKey($jsonName) && jsonObj.get($jsonName).getOrThrow().toString() != "null") {
-                        $assignExpr
+                    if (jsonObj.containsKey($jsonNameTemp) && jsonObj.get($jsonNameTemp).getOrThrow().toString() != "null") {
+                        $assignExprTemp
                     }
                 )
             } else {
                 quote(
                     try {
-                        $assignExpr
+                        $assignExprTemp
                     } catch (e: JsonTypeMismatch) {
-                        throw JsonTypeMismatch($(this.className.toString()), $jsonName, e.message)
+                        throw JsonTypeMismatch($(this.className.toString()), $jsonNameTemp, e.message)
                     }
                 )
             }
@@ -132,27 +129,27 @@ class HandleClass {
             ))
         }
 
-        for (field in allFields) {
-            if (field.isIgnore) {
+        for (fieldTemp1 in allFields) {
+            if (fieldTemp1.isIgnore) {
                 continue
             }
-            let jsonName = field.getJsonName()
-            if (field.isIgnoreNull && isOptionType(field.vd.declType)) {
+            let jsonNameTemp1 = fieldTemp1.getJsonName()
+            if (fieldTemp1.isIgnoreNull && isOptionType(fieldTemp1.vd.declType)) {
                 funcBody.append(
                     quote(
-                    if (let Some(v) <- $(field.vd.identifier)) {
-                        jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
+                    if (let Some(v) <- $(fieldTemp1.vd.identifier)) {
+                        jsonObj.put($(jsonNameTemp1), $(fieldTemp1.vd.identifier).toJsonValue())
                     }
                 ))
             } else {
                 funcBody.append(
                     quote(
-                    jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
+                    jsonObj.put($(jsonNameTemp1), $(fieldTemp1.vd.identifier).toJsonValue())
                 ))
             }
         }
 
-        let openModifier = if (isOpen) {
+        let openModifierTemp1 = if (isOpen) {
             quote(open)
         } else {
             quote()
@@ -160,7 +157,7 @@ class HandleClass {
 
         return FuncDecl(
             quote(
-            public $openModifier func toJsonValue(): JsonValue {
+            public $openModifierTemp1 func toJsonValue(): JsonValue {
                 let jsonObj = JsonObject()
                 $funcBody
                 return jsonObj
@@ -193,29 +190,29 @@ class HandleClass {
             ))
         }
 
-        for (field in allFields) {
-            if (field.isIgnore) {
+        for (fieldTemp3 in allFields) {
+            if (fieldTemp3.isIgnore) {
                 continue
             }
-            let identifier = field.vd.identifier
-            let jsonName = field.getJsonName()
-            let typeInfo = field.vd.declType
+            let identifierTemp3 = fieldTemp3.vd.identifier
+            let jsonNameTemp3 = fieldTemp3.getJsonName()
+            let typeInfoTemp3 = fieldTemp3.vd.declType
 
-            let assignExpr = if (isOptionType(typeInfo)) {
-                let baseType = getOptionBaseType(typeInfo)
+            let assignExpr = if (isOptionType(typeInfoTemp3)) {
+                let baseType = getOptionBaseType(typeInfoTemp3)
                 quote(
-                    obj.$identifier = Option<$baseType>.fromJsonValue(jsonObj.get($jsonName) ?? JsonNull())
+                    obj.$identifierTemp3 = Option<$baseType>.fromJsonValue(jsonObj.get($jsonNameTemp3) ?? JsonNull())
                 )
             } else {
                 quote(
-                    obj.$identifier = $typeInfo.fromJsonValue(jsonObj.get($jsonName).getOrThrow({=> JsonFieldNotExist($(this.className.toString()), $jsonName)}))
+                    obj.$identifierTemp3 = $typeInfoTemp3.fromJsonValue(jsonObj.get($jsonNameTemp3).getOrThrow({=> JsonFieldNotExist($(this.className.toString()), $jsonNameTemp3)}))
                 )
             }
 
-            let expr = if (this.allowNull || field.useDefault) {
+            let exprTemp3 = if (this.allowNull || fieldTemp3.useDefault) {
                 // 如果该 class 标记了 allowNull，或者该成员标记了 @JsonDefault，则仅当 json 字符串中包含该字段时，才对成员变量进行解析赋值，否则保持默认值。
                 quote(
-                    if (jsonObj.containsKey($jsonName) && jsonObj.get($jsonName).getOrThrow().toString() != "null") {
+                    if (jsonObj.containsKey($jsonNameTemp3) && jsonObj.get($jsonNameTemp3).getOrThrow().toString() != "null") {
                         $assignExpr
                     }
                 )
@@ -224,12 +221,12 @@ class HandleClass {
                     try {
                         $assignExpr
                     } catch (e: JsonTypeMismatch) {
-                        throw JsonTypeMismatch($(this.className.toString()), $jsonName, e.message)
+                        throw JsonTypeMismatch($(this.className.toString()), $jsonNameTemp3, e.message)
                     }
                 )
             }
 
-            funcBody.append(expr)
+            funcBody.append(exprTemp3)
         }
 
         return FuncDecl(
@@ -250,27 +247,27 @@ class HandleClass {
             ))
         }
 
-        for (field in allFields) {
-            if (field.isIgnore) {
+        for (fieldTemp2 in allFields) {
+            if (fieldTemp2.isIgnore) {
                 continue
             }
-            let jsonName = field.getJsonName()
-            if (field.isIgnoreNull && isOptionType(field.vd.declType)) {
+            let jsonNameTemp2 = fieldTemp2.getJsonName()
+            if (fieldTemp2.isIgnoreNull && isOptionType(fieldTemp2.vd.declType)) {
                 funcBody.append(
                     quote(
-                    if (let Some(v) <- $(field.vd.identifier)) {
-                        jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
+                    if (let Some(v) <- $(fieldTemp2.vd.identifier)) {
+                        jsonObj.put($(jsonNameTemp2), $(fieldTemp2.vd.identifier).toJsonValue())
                     }
                 ))
             } else {
                 funcBody.append(
                     quote(
-                    jsonObj.put($(jsonName), $(field.vd.identifier).toJsonValue())
+                    jsonObj.put($(jsonNameTemp2), $(fieldTemp2.vd.identifier).toJsonValue())
                 ))
             }
         }
 
-        let openModifier = if (isOpen) {
+        let openModifierTemp2 = if (isOpen) {
             quote(open)
         } else {
             quote()
@@ -278,7 +275,7 @@ class HandleClass {
 
         return FuncDecl(
             quote(
-            public $openModifier func toJsonValueInherit(jsonValue: JsonValue): Unit {
+            public $openModifierTemp2 func toJsonValueInherit(jsonValue: JsonValue): Unit {
                 let jsonObj = jsonValue.asObject()
                 $funcBody
             }
@@ -289,10 +286,10 @@ class HandleClass {
         if (attr.size == 0) {
             return
         }
-        var offset: Int64 = 0
-        while (offset < attr.size) {
+        var offsetTemp1: Int64 = 0
+        while (offsetTemp1 < attr.size) {
             try {
-                let (expr, off) = parseExprFragment(attr, startFrom: offset)
+                let (expr, off) = parseExprFragment(attr, startFrom: offsetTemp1)
                 match (expr) {
                     case ae: AssignExpr =>
                         let key = ae.leftExpr.toTokens().toString()
@@ -313,8 +310,8 @@ class HandleClass {
                                 "Unknown key, it should be one of ${JsonAdapterClassAttr.availableAttrs()}")
                         }
                     case re: RefExpr =>
-                        let key = re.identifier.value
-                        if (key == JsonAdapterClassAttr.ALLOW_NULL) {
+                        let keyTemp = re.identifier.value
+                        if (keyTemp == JsonAdapterClassAttr.ALLOW_NULL) {
                             this.allowNull = true
                         } else {
                             diagReport(DiagReportLevel.ERROR, re.toTokens(),
@@ -325,7 +322,7 @@ class HandleClass {
                         "expect AssignExpr, and key should be one of ${JsonAdapterClassAttr.availableAttrs()}",
                         "expect AssignExpr, and key should be one of ${JsonAdapterClassAttr.availableAttrs()}")
                 }
-                offset = off
+                offsetTemp1 = off
             } catch (e: ParseASTException) {
                 diagReport(DiagReportLevel.ERROR, attr,
                     "attributes is illegal, it should looks like [${JsonAdapterClassAttr.WITH_SUPER_CLASS} = Xxx; ${JsonAdapterClassAttr.WITH_GENERIC_TYPE} = T]",
@@ -348,16 +345,16 @@ class HandleClass {
             return
         }
 
-        let gpTokens = this.cd.genericParam.parameters.toTokens()
-        if (gpTokens.size != 1) {
-            diagReport(DiagReportLevel.ERROR, gpTokens, "can only have one generic param",
+        let gpTokensTemp = this.cd.genericParam.parameters.toTokens()
+        if (gpTokensTemp.size != 1) {
+            diagReport(DiagReportLevel.ERROR, gpTokensTemp, "can only have one generic param",
                 "can only have one generic param")
             return
         }
 
-        let gp = gpTokens.get(0)
+        let gp = gpTokensTemp.get(0)
         if (gp.toTokens().toString() != genericType.toString()) {
-            diagReport(DiagReportLevel.ERROR, gpTokens,
+            diagReport(DiagReportLevel.ERROR, gpTokensTemp,
                 "generic param is inconsistent with `${JsonAdapterClassAttr.WITH_GENERIC_TYPE}` attribute",
                 "generic param is inconsistent with `${JsonAdapterClassAttr.WITH_GENERIC_TYPE}` attribute")
             return
@@ -409,12 +406,12 @@ class HandleClass {
         for (decl in cd.body.decls) {
             match (decl) {
                 case vd: VarDecl =>
-                    let field = FieldInfo(vd)
-                    if (field.isStatic && !field.isIgnore) {
+                    let fieldTemp4 = FieldInfo(vd)
+                    if (fieldTemp4.isStatic && !fieldTemp4.isIgnore) {
                         diagReport(DiagReportLevel.ERROR, vd.toTokens(), "`static` member variable must use @JsonIgnore",
                             "must use @JsonIgnore")
                     }
-                    this.allFields.add(field)
+                    this.allFields.add(fieldTemp4)
                 case _ => ()
             }
         }
